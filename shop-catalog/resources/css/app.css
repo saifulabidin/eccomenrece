@@ -1,11 +1,150 @@
-@import 'tailwindcss';
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Custom carousel controls styling */
+.carousel-control-prev,
+.carousel-control-next {
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 5%;
+    opacity: 0.8;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    opacity: 1;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(1);
+}
+
+/* Hero Section Styling */
+.hero-section {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    background: transparent;
+}
+
+.hero-with-images {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+}
+
+.hero-with-images .carousel-inner {
+    height: 60vh;
+}
+
+.hero-with-images .carousel-item {
+    height: 60vh;
+    position: relative;
+    display: block;
+}
+
+.hero-with-images .hero-image {
+    width: 100% !important;
+    height: 60vh !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    display: block !important;
+}
+
+.hero-with-images .carousel-caption {
+    background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    text-align: left !important;
+    z-index: 10;
+}
+
+.hero-with-images .carousel-caption .container {
+    max-width: none;
+    position: relative;
+    z-index: 15;
+}
+
+.hero-with-images .carousel-caption .row {
+    align-items: center;
+    min-height: 60vh;
+}
+
+.hero-image {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Feature Icons */
+.feature-icon {
+    opacity: 0.8;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    min-height: 380px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card .card-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card .card-img-top {
+    transition: transform 0.3s ease;
+    height: 200px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Button Styling */
+.btn {
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Section Spacing */
+section {
+    padding: 5rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        text-align: center;
+        padding: 3rem 0;
+    }
+
+    .display-4 {
+        font-size: 2.5rem;
+    }
+
+    section {
+        padding: 3rem 0;
+    }
 }

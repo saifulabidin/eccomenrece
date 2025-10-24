@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
+use App\Models\StoreConfig;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Share store config data to all views
+        if (Schema::hasTable('store_configs')) {
+            $storeConfig = StoreConfig::first();
+            View::share('storeName', $storeConfig?->store_name ?? 'Katalog Online');
+            View::share('storeWhatsapp', $storeConfig?->whatsapp_number ?? '6281234567890');
+            View::share('storeAddress', $storeConfig?->address ?? '');
+            View::share('storeDescription', $storeConfig?->description ?? '');
+            View::share('heroImages', $storeConfig?->hero_images ?? []);
+            View::share('storeLogo', $storeConfig?->logo ?? null);
+        } else {
+            View::share('storeName', 'Katalog Online');
+            View::share('storeWhatsapp', '6281234567890');
+            View::share('storeAddress', '');
+            View::share('storeDescription', '');
+            View::share('heroImages', []);
+        }
     }
 }
