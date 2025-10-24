@@ -12,7 +12,7 @@ class ShoppingCart extends Component
     public $showModal = false;
     public $total = 0;
 
-    protected $listeners = ['add-to-cart' => 'addToCart'];
+    protected $listeners = ['add-to-cart' => 'addToCart', 'cart-updated' => 'refreshCart'];
 
     public function mount()
     {
@@ -61,12 +61,9 @@ class ShoppingCart extends Component
         }
     }
 
-    public function removeFromCart($productId)
+    public function refreshCart()
     {
-        $cart = session('cart', []);
-        unset($cart[$productId]);
-        session(['cart' => $cart]);
-        $this->cart = $cart;
+        $this->cart = session('cart', []);
         $this->calculateTotal();
     }
 

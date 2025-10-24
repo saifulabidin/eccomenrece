@@ -31,18 +31,27 @@ class ProductCatalog extends Component
 
     public function render()
     {
-        $query = Product::where('status', 'published');
+        $query = Product::with('category')->where('status', 'published');
 
         if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%');
+            $searchTerm = $this->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                      $categoryQuery->where('name', 'like', '%' . $searchTerm . '%');
+                  });
+            });
         }
 
         if ($this->categoryId) {
             $query->where('category_id', $this->categoryId);
         }
 
+        $query->orderBy('created_at', 'desc');
+
         $products = $query->paginate(12);
-        $categories = Category::all();
+        $categories = Category::orderBy('name')->get();
 
         return view('livewire.product-catalog', compact('products', 'categories'));
     }

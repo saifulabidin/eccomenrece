@@ -27,6 +27,33 @@ class ProductDetail extends Component
         return redirect()->away("https://api.whatsapp.com/send?phone={$whatsappNumber}&text=" . urlencode($message));
     }
 
+    public function addToCart()
+    {
+        $cart = session('cart', []);
+
+        if (isset($cart[$this->product->id])) {
+            $cart[$this->product->id]['quantity'] += $this->quantity;
+        } else {
+            $cart[$this->product->id] = [
+                'id' => $this->product->id,
+                'name' => $this->product->name,
+                'price' => $this->product->price,
+                'quantity' => $this->quantity,
+                'image' => $this->product->images[0] ?? null,
+            ];
+        }
+
+        session(['cart' => $cart]);
+
+        // Dispatch event to update cart count in navbar
+        $this->dispatch('cart-updated');
+
+        session()->flash('message', 'Produk berhasil ditambahkan ke keranjang!');
+
+        // Redirect to cart page
+        return redirect()->route('cart');
+    }
+
     public function render()
     {
         return view('livewire.product-detail');

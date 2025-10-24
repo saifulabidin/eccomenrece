@@ -13,3 +13,7 @@ Route::get('/katalog', function () {
 Route::get('/produk/{slug}', function ($slug) {
     return view('product-detail', compact('slug'));
 })->name('product.detail');
+
+Route::get('/keranjang', function () {
+    return view('cart');
+})->name('cart');
