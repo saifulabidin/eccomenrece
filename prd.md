@@ -122,9 +122,19 @@ Slug (otomatis)
 
 Deskripsi (Rich Text Editor)
 
+Kategori Produk User Manual Input
+
+Variasi/Attribute (misal: Warna, Ukuran - opsional) User Manual Input
+
 Harga
 
+Harga Diskon (opsional)
+
+Harga Varian (opsional, untuk produk dengan variasi)
+
 Stok (opsional)
+
+Stok Varian (opsional, untuk produk dengan variasi)
 
 Relasi ke Kategori (Dropdown/Select)
 
