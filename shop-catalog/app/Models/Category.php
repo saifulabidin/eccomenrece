@@ -7,11 +7,19 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'slug', 'description'];
+    protected $fillable = ['name', 'slug', 'description', 'image'];
 
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return null;
     }
 
     protected static function boot()

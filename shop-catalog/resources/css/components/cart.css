@@ -2,58 +2,39 @@
    CART COMPONENTS
    ============================================= */
 
-/* Extra spacing for cart page */
-body.route-cart main {
-    padding-top: 1rem;
-}
-
-/* Also add spacing for cart content */
-body.route-cart .cart-page {
-    margin-top: 1rem;
-}
-
-/* Cart page specific adjustments */
-body.route-cart .modern-nav {
-    margin-bottom: 1rem;
-}
-
-/* Aggressive cart spacing for very tall navbar */
-body.route-cart .cart-content {
-    margin-top: 1rem;
-    position: relative;
-    z-index: 1;
-}
-
-/* Cart Page Enhancements */
+/* Cart Page Container */
 .cart-page {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
     min-height: 100vh;
 }
 
-.cart-header {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
+/* Cart Item Styling */
 .cart-item {
     transition: all 0.3s ease;
     border-radius: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 1px;
+}
+
+.cart-item:last-child {
+    border-bottom: none !important;
 }
 
 .cart-item:hover {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
 }
 
-.cart-summary {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+/* Quantity Controls */
+.input-group .form-control {
+    border-radius: 0;
+}
+
+.input-group .btn:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.input-group .btn:last-child {
+    border-radius: 0 4px 4px 0;
 }
 
 .quantity-controls {
@@ -62,6 +43,53 @@ body.route-cart .cart-content {
     padding: 4px;
 }
 
+/* Quantity Controls for Product Detail */
+.product-detail-quantity .input-group {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.product-detail-quantity .btn {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    transition: all 0.2s ease;
+}
+
+.product-detail-quantity .btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    transform: scale(1.05);
+}
+
+.product-detail-quantity .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Hide spinners in Chrome, Safari, Edge, Opera */
+.input-group input[type="number"]::-webkit-outer-spin-button,
+.input-group input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Hide spinners in Firefox */
+.input-group input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Product Image Container */
+.cart-item .bg-secondary {
+    transition: transform 0.3s ease;
+}
+
+.cart-item:hover .bg-secondary {
+    transform: scale(1.05);
+}
+
+/* Cart Actions */
 .btn-cart-action {
     border-radius: 8px;
     font-weight: 600;
@@ -71,6 +99,183 @@ body.route-cart .cart-content {
 .btn-cart-action:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Cart Summary Card */
+.cart-summary {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Empty Cart State */
+.empty-cart-icon {
+    background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Modern Toast Notification */
+.modern-toast {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 9999;
+    animation: slideInRight 0.5s ease-out;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.success-toast {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    color: white;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    margin-right: 16px;
+    animation: checkmark 0.6s ease-out;
+}
+
+.toast-message h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+}
+
+.toast-message p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Alert Styling */
+.alert-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+    border-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* WhatsApp Button Styling */
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    border-color: #25D366 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-whatsapp:hover {
+    background: linear-gradient(135deg, #128C7E 0%, #0D5F54 100%) !important;
+    border-color: #128C7E !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.3);
+    color: #ffffff !important;
+}
+
+.btn-whatsapp:active {
+    transform: translateY(0);
+}
+
+/* Checkout Form Styling */
+.checkout-form .form-control {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.checkout-form .form-control:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.checkout-form .form-label {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+.checkout-form .form-text {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.checkout-form .invalid-feedback {
+    color: #dc3545 !important;
+    font-size: 0.875rem;
+}
+
+/* Modal Backdrop for Checkout */
+.modal-backdrop.show {
+    opacity: 0.8 !important;
+}
+
+/* Order Summary Box in Modal */
+.order-summary-box {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 1rem;
+        max-width: none;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    .checkout-form .form-control,
+    .checkout-form textarea {
+        font-size: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes checkmark {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Enhanced Mobile Responsiveness for Cart */
@@ -156,27 +361,6 @@ body.route-cart .cart-content {
     margin: 0;
     font-size: 0.9rem;
     opacity: 0.9;
-}
-
-/* Loading States for Cart */
-.btn-loading {
-    position: relative;
-    color: transparent !important;
-}
-
-.btn-loading::after {
-    content: "";
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    top: 50%;
-    left: 50%;
-    margin-left: -8px;
-    margin-top: -8px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
 
 /* Alert Styling for Cart */

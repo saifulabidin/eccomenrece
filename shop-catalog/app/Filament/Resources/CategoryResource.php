@@ -17,7 +17,10 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-folder';
+    protected static ?string $navigationLabel = 'Kategori';
+    protected static ?string $modelLabel = 'Kategori';
+    protected static ?string $pluralModelLabel = 'Kategori';
 
     public static function form(Form $form): Form
     {
@@ -26,18 +29,27 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255)
+                    ->label('Nama Kategori')
                     ->live(onBlur: true)
-                    ->afterStateUpdated(function (string $context, $state, Forms\Set $set) {
-                        if ($context === 'create') {
-                            $set('slug', \Illuminate\Support\Str::slug($state));
-                        }
-                    }),
+                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', \Illuminate\Support\Str::slug($state))),
                 Forms\Components\TextInput::make('slug')
                     ->required()
                     ->maxLength(255)
-                    ->unique(ignoreRecord: true),
+                    ->label('Slug')
+                    ->unique(Category::class, 'slug', ignoreRecord: true),
                 Forms\Components\Textarea::make('description')
-                    ->nullable(),
+                    ->label('Deskripsi')
+                    ->columnSpanFull()
+                    ->rows(3),
+                Forms\Components\FileUpload::make('image')
+                    ->label('Gambar Kategori')
+                    ->image()
+                    ->imageEditor()
+                    ->directory('categories')
+                    ->visibility('public')
+                    ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])
+                    ->helperText('Format: JPEG, PNG, JPG, GIF, WebP. Maksimal: 2MB'),
             ]);
     }
 
@@ -45,31 +57,52 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('Gambar')
+                    ->circular()
+                    ->size(50),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Nama Kategori')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
+                    ->label('Slug')
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->limit(50),
+                    ->label('Deskripsi')
+                    ->limit(50)
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Dibuat')
+                    ->dateTime('d M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Diperbarui')
+                    ->dateTime('d M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('name')
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Edit'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('Belum ada kategori')
+            ->emptyStateDescription('Mulai dengan membuat kategori pertama Anda.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
             ]);
     }
 

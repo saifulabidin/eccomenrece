@@ -3,7 +3,7 @@
    ============================================= */
 
 /* Modern Card Styling */
-.card {
+.product-card {
     background: var(--glass-bg) !important;
     border: 1px solid var(--glass-border) !important;
     color: #ffffff !important;
@@ -13,7 +13,7 @@
     overflow: hidden;
 }
 
-.card:hover {
+.product-card:hover {
     transform: translateY(-8px) !important;
     border-color: #667eea !important;
     box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3) !important;
@@ -36,39 +36,33 @@
     border-radius: 20px;
 }
 
-/* Card Hover Effects */
-.card {
+/* Product Card Structure */
+.product-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: none;
-    border-radius: 15px;
+    border-radius: 12px;
     overflow: hidden;
     min-height: 380px;
     height: 100%;
     display: flex;
     flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
 }
 
-.card .card-body {
+.product-card .card-body {
     padding: 1.25rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
-.card .card-img-top {
+.product-card .card-img-top {
     transition: transform 0.3s ease;
     height: 200px;
     object-fit: cover;
     flex-shrink: 0;
-}
-
-/* Card Enhancements */
-.card {
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
 }
 
 .card-header {
@@ -81,6 +75,30 @@
 .category-icon {
     color: #007bff;
     opacity: 0.8;
+}
+
+.category-icon i {
+    font-size: 3rem; /* Base size for desktop */
+    line-height: 1;
+}
+
+/* Responsive icon sizing */
+@media (max-width: 768px) {
+    .category-icon i {
+        font-size: 2.5rem; /* Slightly smaller for tablets */
+    }
+}
+
+@media (max-width: 576px) {
+    .category-icon i {
+        font-size: 2rem; /* Smaller for mobile phones */
+    }
+}
+
+/* Ensure icon scales properly with card */
+.card:hover .category-icon i {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
 }
 
 /* Feature Icons */

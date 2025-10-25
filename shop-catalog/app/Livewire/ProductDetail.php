@@ -10,20 +10,74 @@ class ProductDetail extends Component
 {
     public $product;
     public $quantity = 1;
+    public $customerName = '';
+    public $customerAddress = '';
+    public $showForm = false;
 
     public function mount($slug)
     {
         $this->product = Product::where('slug', $slug)->where('status', 'published')->firstOrFail();
     }
 
+    protected $rules = [
+        'customerName' => 'required|string|min:3|max:50',
+        'customerAddress' => 'required|string|min:10|max:200',
+    ];
+
+    protected $messages = [
+        'customerName.required' => 'Nama wajib diisi',
+        'customerName.min' => 'Nama minimal 3 karakter',
+        'customerName.max' => 'Nama maksimal 50 karakter',
+        'customerAddress.required' => 'Alamat wajib diisi',
+        'customerAddress.min' => 'Alamat minimal 10 karakter',
+        'customerAddress.max' => 'Alamat maksimal 200 karakter',
+    ];
+
+    public function proceedToCheckout()
+    {
+        $this->showForm = true;
+    }
+
+    public function cancelCheckout()
+    {
+        $this->showForm = false;
+        $this->reset(['customerName', 'customerAddress']);
+    }
+
+    public function incrementQuantity()
+    {
+        $maxStock = $this->product->stock ?? 999;
+        if ($this->quantity < $maxStock) {
+            $this->quantity++;
+        }
+    }
+
+    public function decrementQuantity()
+    {
+        if ($this->quantity > 1) {
+            $this->quantity--;
+        }
+    }
+
     public function checkoutNow()
     {
-        $message = "Halo, saya ingin memesan:\n\n";
-        $message .= "{$this->product->name} (x{$this->quantity}) - Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n";
-        $message .= "\nTotal: Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n";
+        $this->validate();
+
+        $message = "PESANAN BARU\n\n";
+        $message .= "Data Pelanggan:\n";
+        $message .= "Nama: {$this->customerName}\n";
+        $message .= "Alamat: {$this->customerAddress}\n\n";
+        $message .= "Detail Pesanan:\n";
+        $message .= "• {$this->product->name} (Qty: {$this->quantity}) - Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n";
+        $message .= "\nTotal Pembayaran: Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n\n";
+        $message .= "Mohon konfirmasi pesanan saya. Terima kasih!";
 
         $config = StoreConfig::first() ?? (object)['whatsapp_number' => '6281234567890'];
         $whatsappNumber = $config->whatsapp_number;
+
+        $this->showForm = false;
+        $this->reset(['customerName', 'customerAddress']);
+
         return redirect()->away("https://api.whatsapp.com/send?phone={$whatsappNumber}&text=" . urlencode($message));
     }
 

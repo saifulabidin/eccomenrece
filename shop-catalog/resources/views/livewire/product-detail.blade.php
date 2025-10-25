@@ -31,24 +31,126 @@
             <p class="text-muted"><s>Rp {{ number_format($product->discount_price, 0, ',', '.') }}</s></p>
             @endif
             <p>{{ $product->description }}</p>
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Jumlah</label>
-                <input type="number" class="form-control" id="quantity" wire:model="quantity" min="1" max="{{ $product->stock ?? 999 }}">
+            <div class="mb-4">
+                <label class="form-label text-light">Jumlah</label>
+                <div class="d-flex align-items-center product-detail-quantity">
+                    <div class="input-group input-group-sm" style="width: 120px;">
+                        <button class="btn btn-outline-secondary"
+                                wire:click="decrementQuantity"
+                                @disabled($quantity <= 1)>
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number"
+                               class="form-control text-center bg-dark border-secondary text-light"
+                               wire:model.live="quantity"
+                               min="1"
+                               max="{{ $product->stock ?? 999 }}"
+                               value="{{ $quantity }}">
+                        <button class="btn btn-outline-secondary"
+                                wire:click="incrementQuantity"
+                                @disabled($quantity >= ($product->stock ?? 999))>
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <span class="text-muted small ms-3">
+                        Stok: {{ $product->stock ?? 'Tersedia' }} pcs
+                    </span>
+                </div>
             </div>
-            <button class="btn btn-primary" wire:click="addToCart">Tambah ke Keranjang</button>
-            <button class="btn btn-success ms-2" wire:click="checkoutNow">Pesan Sekarang</button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" wire:click="addToCart">
+                    <i class="bi bi-cart-plus me-2"></i>Tambah ke Keranjang
+                </button>
+                <button class="btn btn-whatsapp" wire:click="proceedToCheckout">
+                    <i class="bi bi-whatsapp me-2"></i>Pesan Sekarang
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Success Message -->
     @if(session('success'))
     <div class="modern-toast success-toast" wire:ignore>
         <div class="toast-content">
-            <i class="fas fa-check-circle toast-icon"></i>
+            <i class="bi bi-check-circle-fill toast-icon"></i>
             <div class="toast-message">
                 <h4>Sukses!</h4>
                 <p>{{ session('success') }}</p>
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Checkout Form Modal -->
+    @if($showForm)
+        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+        <div class="modal fade show d-block" style="z-index: 1050;" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content bg-dark border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title text-light">
+                            <i class="bi bi-person-lines-fill text-primary me-2"></i>Data Pembeli
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cancelCheckout"></button>
+                    </div>
+                    <form wire:submit.prevent="checkoutNow" class="checkout-form">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label text-light">
+                                    Nama Lengkap <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control bg-dark border-secondary text-light @error('customerName') is-invalid @enderror"
+                                       id="customerName"
+                                       wire:model="customerName"
+                                       placeholder="Masukkan nama lengkap Anda">
+                                @error('customerName')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="customerAddress" class="form-label text-light">
+                                    Alamat Lengkap <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control bg-dark border-secondary text-light @error('customerAddress') is-invalid @enderror"
+                                          id="customerAddress"
+                                          wire:model="customerAddress"
+                                          rows="3"
+                                          placeholder="Masukkan alamat pengiriman lengkap"></textarea>
+                                @error('customerAddress')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Order Summary in Modal -->
+                            <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-3 order-summary-box">
+                                <h6 class="text-light mb-2">Ringkasan Pesanan:</h6>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted small">Produk:</span>
+                                    <span class="text-light small">{{ $product->name }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted small">Quantity:</span>
+                                    <span class="text-light small">{{ $quantity }} pcs</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Total Bayar:</span>
+                                    <span class="text-primary fw-bold small">Rp {{ number_format($product->price * $quantity, 0, ',', '.') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" wire:click="cancelCheckout">
+                                <i class="bi bi-x-circle me-1"></i>Batal
+                            </button>
+                            <button type="submit" class="btn btn-whatsapp">
+                                <i class="bi bi-whatsapp me-1"></i>Kirim ke WhatsApp
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endif
 </div>

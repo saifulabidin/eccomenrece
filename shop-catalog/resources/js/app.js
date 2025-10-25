@@ -82,18 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add loading states to buttons
-    document.querySelectorAll('button, .btn').forEach(button => {
-        button.addEventListener('click', function() {
-            if (!this.classList.contains('no-loading')) {
-                this.classList.add('loading');
-                setTimeout(() => {
-                    this.classList.remove('loading');
-                }, 2000);
-            }
-        });
-    });
-
     // Intersection Observer for fade-in animations
     const observerOptions = {
         threshold: 0.1,
