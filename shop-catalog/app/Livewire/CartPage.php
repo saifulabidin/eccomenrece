@@ -10,6 +10,7 @@ class CartPage extends Component
 {
     public $cart = [];
     public $total = 0;
+    public $itemToRemove = null;
 
     protected $listeners = ['add-to-cart' => 'addToCart'];
 
@@ -69,14 +70,23 @@ class CartPage extends Component
         $this->loadCart();
     }
 
-    public function removeFromCart($productId)
+    public function removeFromCart()
     {
+        if (!$this->itemToRemove) {
+            session()->flash('error', 'Tidak ada produk yang dipilih untuk dihapus!');
+            return;
+        }
+
         $cart = session('cart', []);
-        unset($cart[$productId]);
+        $productName = $cart[$this->itemToRemove]['name'] ?? 'Produk';
+        unset($cart[$this->itemToRemove]);
         session(['cart' => $cart]);
         $this->loadCart();
 
-        session()->flash('message', 'Produk berhasil dihapus dari keranjang!');
+        // Reset the item to remove
+        $this->itemToRemove = null;
+
+        session()->flash('success', "{$productName} berhasil dihapus dari keranjang!");
     }
 
     public function calculateTotal()

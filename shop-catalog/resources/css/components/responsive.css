@@ -1,0 +1,281 @@
+/* =============================================
+   RESPONSIVE DESIGN COMPONENTS
+   ============================================= */
+
+/* Responsive Improvements */
+@media (max-width: 991.98px) {
+    .modern-nav {
+        padding: 1rem 0;
+    }
+
+    .cart-mobile {
+        right: 0.75rem;
+    }
+
+    .brand-name {
+        font-size: 1rem;
+    }
+
+    .brand-img {
+        height: 35px;
+    }
+
+    .nav-link-modern {
+        margin: 4px 0;
+        justify-content: flex-start;
+    }
+
+    .hero-title {
+        font-size: clamp(2rem, 6vw, 3rem);
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-modern {
+        justify-content: center;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        margin-bottom: 2rem;
+    }
+
+    .cta-buttons {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    .cta-buttons .btn-modern {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .modern-section {
+        padding: 60px 0;
+    }
+
+    .cta-section {
+        padding: 80px 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modern-brand {
+        gap: 8px;
+    }
+
+    .brand-name {
+        font-size: 0.9rem;
+    }
+
+    .brand-img {
+        height: 30px;
+    }
+
+    .cart-btn-mobile {
+        width: 40px;
+        height: 40px;
+    }
+
+    .hero-title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: clamp(1.8rem, 4vw, 2.2rem);
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+    }
+
+    .feature-card {
+        padding: 1.5rem;
+    }
+
+    .feature-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .feature-title {
+        font-size: 1.3rem;
+    }
+
+    .feature-description {
+        font-size: 0.95rem;
+    }
+
+    .cta-title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    .cta-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-icon-circle {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+
+    .floating-element {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .modern-carousel .carousel-control-prev,
+    .modern-carousel .carousel-control-next {
+        width: 8%;
+    }
+
+    .modern-carousel .carousel-control-prev-icon,
+    .modern-carousel .carousel-control-next-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .btn-modern {
+        padding: 10px 24px;
+        font-size: 0.9rem;
+    }
+
+    .btn-lg {
+        padding: 14px 32px;
+        font-size: 1rem;
+    }
+}
+
+/* Tablet Specific Styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .hero-title {
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+    }
+
+    .section-title {
+        font-size: clamp(2rem, 3vw, 2.5rem);
+    }
+
+    .feature-card {
+        padding: 1.8rem;
+    }
+
+    .cta-section {
+        padding: 100px 0;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Add spacing for product detail page */
+body.route-produk main {
+    padding-top: 1rem;
+}
+
+/* Enhanced Mobile Responsiveness for Cart */
+@media (max-width: 768px) {
+    .cart-page {
+        padding: 1rem !important;
+    }
+
+    .cart-item {
+        margin-bottom: 6px;
+        padding: 1rem !important;
+    }
+
+    .cart-summary {
+        position: static !important;
+        margin-top: 1rem;
+    }
+
+    .quantity-controls {
+        justify-content: center;
+    }
+
+    .product-info-mobile {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .cart-header h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .cart-item .row > div {
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-cart-action {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Responsive Navbar */
+@media (max-width: 991.98px) {
+    .navbar-nav {
+        text-align: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-nav .nav-item {
+        margin: 0.5rem 0;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem !important;
+    }
+
+    .navbar-brand img {
+        height: 35px !important;
+    }
+}
+
+/* Sticky Enhancement */
+.sticky-top {
+    top: 20px !important;
+}
+
+/* Footer Styling */
+footer {
+    background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

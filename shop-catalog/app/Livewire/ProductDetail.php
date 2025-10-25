@@ -48,10 +48,11 @@ class ProductDetail extends Component
         // Dispatch event to update cart count in navbar
         $this->dispatch('cart-updated');
 
-        session()->flash('message', 'Produk berhasil ditambahkan ke keranjang!');
+        // Flash success message - stay on the same page
+        session()->flash('success', 'Produk berhasil ditambahkan ke keranjang!');
 
-        // Redirect to cart page
-        return redirect()->route('cart');
+        // Reset quantity after adding to cart
+        $this->quantity = 1;
     }
 
     public function render()

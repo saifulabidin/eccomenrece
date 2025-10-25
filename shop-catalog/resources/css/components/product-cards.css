@@ -1,0 +1,120 @@
+/* =============================================
+   PRODUCT CARDS & GRID COMPONENTS
+   ============================================= */
+
+/* Modern Card Styling */
+.card {
+    background: var(--glass-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: #ffffff !important;
+    border-radius: var(--border-radius) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: var(--transition) !important;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-8px) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3) !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.card-title {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.card-text {
+    color: rgba(255, 255, 255, 0.8) !important;
+    line-height: 1.6 !important;
+}
+
+.card .btn {
+    border-radius: 20px;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    min-height: 380px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card .card-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card .card-img-top {
+    transition: transform 0.3s ease;
+    height: 200px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Card Enhancements */
+.card {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #2d2d2d 0%, #343a40 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Category Cards */
+.category-icon {
+    color: #007bff;
+    opacity: 0.8;
+}
+
+/* Feature Icons */
+.feature-icon {
+    color: #007bff;
+    opacity: 0.8;
+}
+
+/* List Group Items for Dark Theme */
+.list-group-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+.list-group-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure all text is visible on dark background */
+.text-center .display-5 {
+    color: #ffffff !important;
+}
+
+.text-center .lead {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Fix any remaining light backgrounds */
+.bg-light {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+}
+
+/* Section Spacing */
+section {
+    padding: 5rem 0;
+}

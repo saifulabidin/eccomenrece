@@ -1,0 +1,291 @@
+/* =============================================
+   NAVBAR COMPONENTS
+   ============================================= */
+
+/* Modern Navbar Styling */
+.modern-nav {
+    background: var(--dark-gradient) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    min-height: var(--nav-height);
+    transition: var(--transition);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modern-nav.scrolled {
+    backdrop-filter: blur(30px) !important;
+    background: rgba(26, 26, 26, 0.95) !important;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Modern Brand Styling */
+.modern-brand {
+    color: #ffffff !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: var(--transition);
+    position: relative;
+}
+
+.modern-brand:hover {
+    transform: translateY(-2px);
+}
+
+.brand-icon {
+    font-size: 1.5rem;
+    color: #667eea;
+    text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.brand-name {
+    font-weight: 700;
+    font-size: 1.25rem;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.brand-logo {
+    position: relative;
+}
+
+.brand-img {
+    height: 40px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--glass-border);
+    transition: var(--transition);
+}
+
+.modern-brand:hover .brand-img {
+    border-color: #667eea;
+    box-shadow: 0 0 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Modern Navigation Links */
+.nav-link-modern {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 12px 20px !important;
+    border-radius: var(--border-radius);
+    margin: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--glass-bg);
+    transition: var(--transition);
+}
+
+.nav-link-modern:hover {
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    background: var(--glass-bg);
+}
+
+.nav-link-modern:hover::before {
+    left: 0;
+}
+
+.nav-link-modern.active {
+    color: #ffffff !important;
+    background: var(--primary-gradient);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.nav-icon {
+    font-size: 1.1rem;
+}
+
+.nav-text {
+    font-weight: 600;
+}
+
+/* Modern Mobile Toggler */
+.modern-toggler {
+    border: none !important;
+    padding: 8px !important;
+    background: var(--glass-bg) !important;
+    border-radius: var(--border-radius) !important;
+    transition: var(--transition) !important;
+}
+
+.modern-toggler:hover {
+    background: var(--primary-gradient) !important;
+    transform: scale(1.05);
+}
+
+.toggler-icon {
+    width: 24px;
+    height: 20px;
+    position: relative;
+    transform: rotate(0deg);
+    transition: var(--transition);
+}
+
+.toggler-icon span {
+    display: block;
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 3px;
+    opacity: 1;
+    left: 0;
+    transform: rotate(0deg);
+    transition: var(--transition);
+}
+
+.toggler-icon span:nth-child(1) {
+    top: 0px;
+}
+
+.toggler-icon span:nth-child(2) {
+    top: 8px;
+}
+
+.toggler-icon span:nth-child(3) {
+    top: 16px;
+}
+
+/* Modern Cart Styling */
+.cart-btn {
+    position: relative;
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Cart Button Display Logic */
+.cart-nav .cart-btn-mobile {
+    display: none !important;
+}
+
+.cart-mobile .cart-btn-desktop {
+    display: none !important;
+}
+
+.cart-btn-desktop {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+.cart-btn-desktop:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: #ffffff !important;
+}
+
+.cart-btn-mobile {
+    width: 45px;
+    height: 45px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.cart-btn-mobile:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+}
+
+.cart-icon {
+    font-size: 1.2rem;
+    margin-right: 8px;
+}
+
+.cart-icon-mobile {
+    font-size: 1.1rem;
+}
+
+.cart-text {
+    font-weight: 600;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ff4757;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+    animation: pulse 2s infinite;
+}
+
+.cart-badge-mobile {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #ff4757;
+    color: white;
+    border-radius: 10px;
+    padding: 1px 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+    animation: pulse 2s infinite;
+}
+
+/* Mobile Cart Positioning */
+.cart-mobile {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+
+/* Scroll Effects */
+.nav-scrolled {
+    transform: translateY(0);
+    transition: var(--transition);
+}
+
+/* Shopping Cart Button */
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline-light .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    animation: pulse 2s infinite;
+}

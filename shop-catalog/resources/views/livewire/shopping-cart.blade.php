@@ -1,10 +1,18 @@
 <div>
-    <!-- Cart Button -->
-    <a href="{{ route('cart') }}" class="btn btn-outline-light position-relative rounded-pill px-3 py-2 ms-3">
-        <i class="bi bi-cart-fill me-2"></i>
-        <span class="d-none d-lg-inline">Keranjang</span>
+    <!-- Desktop Cart Button -->
+    <a href="{{ route('cart') }}" class="cart-btn cart-btn-desktop" title="Keranjang Belanja">
+        <i class="fas fa-shopping-cart cart-icon"></i>
+        <span class="cart-text">Keranjang</span>
         @if(count($cart) > 0)
-        <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">{{ count($cart) }}</span>
+        <span class="cart-badge">{{ count($cart) }}</span>
+        @endif
+    </a>
+
+    <!-- Mobile Cart Button -->
+    <a href="{{ route('cart') }}" class="cart-btn cart-btn-mobile" title="Keranjang Belanja">
+        <i class="fas fa-shopping-cart cart-icon-mobile"></i>
+        @if(count($cart) > 0)
+        <span class="cart-badge-mobile">{{ count($cart) }}</span>
         @endif
     </a>
 </div>

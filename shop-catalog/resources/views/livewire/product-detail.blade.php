@@ -40,9 +40,15 @@
         </div>
     </div>
 
-    @if(session('message'))
-    <div class="alert alert-success mt-3">
-        {{ session('message') }}
+    @if(session('success'))
+    <div class="modern-toast success-toast" wire:ignore>
+        <div class="toast-content">
+            <i class="fas fa-check-circle toast-icon"></i>
+            <div class="toast-message">
+                <h4>Sukses!</h4>
+                <p>{{ session('success') }}</p>
+            </div>
+        </div>
     </div>
     @endif
 </div>

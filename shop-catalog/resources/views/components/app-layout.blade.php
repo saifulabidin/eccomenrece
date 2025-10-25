@@ -4,42 +4,69 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $storeName }}</title>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 <body class="bg-dark text-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark modern-nav sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
+            <!-- Logo/Brand -->
             @if($storeLogo)
-                <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-                    <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" height="45" class="me-2 rounded">
-                    <span class="fw-bold fs-5">{{ $storeName }}</span>
+                <a class="navbar-brand modern-brand d-flex align-items-center" href="{{ route('home') }}">
+                    <div class="brand-logo">
+                        <img src="{{ asset('storage/' . $storeLogo) }}" alt="{{ $storeName }}" class="brand-img">
+                    </div>
+                    <span class="brand-name">{{ $storeName }}</span>
                 </a>
             @else
-                <a class="navbar-brand fw-bold fs-4" href="{{ route('home') }}">{{ $storeName }}</a>
+                <a class="navbar-brand modern-brand" href="{{ route('home') }}">
+                    <i class="fas fa-store brand-icon"></i>
+                    <span class="brand-name">{{ $storeName }}</span>
+                </a>
             @endif
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <!-- Mobile Menu Toggle -->
+            <button class="navbar-toggler modern-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="toggler-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </button>
 
+            <!-- Desktop Navigation -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold px-3 py-2 rounded-pill" href="{{ route('home') }}">
-                            <i class="bi bi-house-door me-1"></i>Home
+                <ul class="navbar-nav mx-auto nav-menu">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-modern {{ request()->is('/') ? 'active' : '' }}" href="{{ route('home') }}">
+                            <i class="fas fa-home nav-icon"></i>
+                            <span class="nav-text">Home</span>
                         </a>
                     </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link fw-semibold px-3 py-2 rounded-pill" href="{{ route('catalog') }}">
-                            <i class="bi bi-grid me-1"></i>Katalog
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-modern {{ request()->is('katalog*') ? 'active' : '' }}" href="{{ route('catalog') }}">
+                            <i class="fas fa-th-large nav-icon"></i>
+                            <span class="nav-text">Katalog</span>
                         </a>
                     </li>
                 </ul>
 
-                <div class="d-flex align-items-center">
+                <!-- Cart Button -->
+                <div class="cart-nav">
                     @livewire('shopping-cart')
                 </div>
+            </div>
+
+            <!-- Mobile Cart Button -->
+            <div class="cart-mobile d-lg-none">
+                @livewire('shopping-cart')
             </div>
         </div>
     </nav>
