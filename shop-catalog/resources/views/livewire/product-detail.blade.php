@@ -1,6 +1,31 @@
 <div class="container my-5">
-    <div class="row">
-        <div class="col-md-6">
+    <!-- Product Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs nav-tabs-modern border-0" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab" aria-controls="detail" aria-selected="true">
+                        <i class="bi bi-info-circle me-2"></i>Detail Produk
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">
+                        <i class="bi bi-star me-2"></i>Ulasan
+                        @if($product->total_reviews > 0)
+                            <span class="badge bg-primary ms-1">{{ $product->total_reviews }}</span>
+                        @endif
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="productTabsContent">
+        <!-- Detail Tab -->
+        <div class="tab-pane fade show active" id="detail" role="tabpanel" aria-labelledby="detail-tab" tabindex="0">
+            <div class="row">
+                <div class="col-md-6">
             @if($product->images)
             <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
@@ -30,7 +55,34 @@
             @if($product->discount_price)
             <p class="text-muted"><s>Rp {{ number_format($product->discount_price, 0, ',', '.') }}</s></p>
             @endif
-            <p>{{ $product->description }}</p>
+            @if($product->total_reviews > 0)
+                <div class="product-rating-detail mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-display">
+                            {!! $product->starsAttribute !!}
+                        </div>
+                        <div class="rating-info">
+                            <span class="text-warning fw-bold">{{ $product->formatted_average_rating }}</span>
+                            <span class="text-muted">({{ $product->total_reviews }} ulasan)</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <div class="product-description-container">
+        <div class="product-description {{ $showFullDescription ? 'expanded' : 'collapsed' }}">
+            {!! $this->displayDescription !!}
+        </div>
+
+        @if($this->needsTruncation)
+            <button wire:click="toggleDescription"
+                    class="btn btn-link text-primary p-0 mt-2 description-toggle-btn">
+                <span class="toggle-text">
+                    {{ $showFullDescription ? 'Lihat Lebih Sedikit' : 'Lihat Selengkapnya' }}
+                </span>
+                <i class="bi bi-chevron-{{ $showFullDescription ? 'up' : 'down' }} ms-1"></i>
+            </button>
+        @endif
+    </div>
             <div class="mb-4">
                 <label class="form-label text-light">Jumlah</label>
                 <div class="d-flex align-items-center product-detail-quantity">
@@ -57,13 +109,40 @@
                     </span>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" wire:click="addToCart">
+            <div class="product-action-buttons">
+                <button class="btn btn-primary flex-fill" wire:click="addToCart">
                     <i class="bi bi-cart-plus me-2"></i>Tambah ke Keranjang
                 </button>
-                <button class="btn btn-whatsapp" wire:click="proceedToCheckout">
+                <button class="btn btn-whatsapp flex-fill" wire:click="proceedToCheckout">
                     <i class="bi bi-whatsapp me-2"></i>Pesan Sekarang
                 </button>
+                <div class="dropdown flex-fill">
+                    <button class="btn btn-share dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-share me-2"></i>Share
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary">
+                        <li>
+                            <button class="dropdown-item text-light copy-link-btn" data-url="{{ url('/produk/' . $product->slug) }}">
+                                <i class="bi bi-link-45deg me-2"></i>Copy Link
+                            </button>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-light" href="https://wa.me/?text={{ urlencode('Cek produk keren ini: ' . $product->name . ' - ' . url('/produk/' . $product->slug)) }}" target="_blank">
+                                <i class="bi bi-whatsapp me-2"></i>Share ke WhatsApp
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-light" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url('/produk/' . $product->slug)) }}" target="_blank">
+                                <i class="bi bi-facebook me-2"></i>Share ke Facebook
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-light" href="https://twitter.com/intent/tweet?text={{ urlencode('Cek produk keren ini: ' . $product->name) }}&url={{ urlencode(url('/produk/' . $product->slug)) }}" target="_blank">
+                                <i class="bi bi-twitter me-2"></i>Share ke Twitter
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -153,4 +232,11 @@
             </div>
         </div>
     @endif
+        </div>
+
+        <!-- Reviews Tab -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
+            <livewire:product-reviews :slug="$product->slug" />
+        </div>
+    </div>
 </div>

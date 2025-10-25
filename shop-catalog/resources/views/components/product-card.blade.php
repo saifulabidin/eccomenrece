@@ -1,4 +1,4 @@
-<div class="product-card">
+<div class="product-card card">
     <x-product-image :product="$product" />
     <div class="card-body d-flex flex-column">
         <x-product-info :product="$product" />

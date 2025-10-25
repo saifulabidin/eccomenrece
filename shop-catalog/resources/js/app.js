@@ -104,4 +104,67 @@ document.addEventListener('DOMContentLoaded', function() {
         el.style.transition = 'all 0.6s ease-out';
         observer.observe(el);
     });
+
+    // Copy to clipboard functionality for share buttons
+    const copyLinkButtons = document.querySelectorAll('.copy-link-btn');
+    copyLinkButtons.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const url = this.getAttribute('data-url');
+            const originalHTML = this.innerHTML;
+
+            try {
+                // Use modern clipboard API if available
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(url);
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+
+                // Show success feedback
+                this.classList.add('copied');
+                this.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Link Tersalin!';
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    this.classList.remove('copied');
+                    this.innerHTML = originalHTML;
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                // Show error feedback
+                this.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>Gagal menyalin';
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                }, 2000);
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(e.target) && !e.target.closest('.dropdown-toggle')) {
+                const dropdownInstance = bootstrap.Dropdown.getInstance(dropdown.previousElementSibling);
+                if (dropdownInstance) {
+                    dropdownInstance.hide();
+                }
+            }
+        });
+    });
 });

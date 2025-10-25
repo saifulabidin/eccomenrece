@@ -13,10 +13,50 @@ class ProductDetail extends Component
     public $customerName = '';
     public $customerAddress = '';
     public $showForm = false;
+    public $showFullDescription = false;
 
     public function mount($slug)
     {
         $this->product = Product::where('slug', $slug)->where('status', 'published')->firstOrFail();
+    }
+
+    public function toggleDescription()
+    {
+        $this->showFullDescription = !$this->showFullDescription;
+    }
+
+    public function getDisplayDescriptionProperty()
+    {
+        if (!$this->product->description) {
+            return '';
+        }
+
+        $plainText = strip_tags($this->product->description);
+        $isLong = strlen($plainText) > 150;
+
+        if (!$isLong || $this->showFullDescription) {
+            return $this->product->description;
+        }
+
+        // Truncate to ~150 characters, preserving HTML
+        $truncated = substr($plainText, 0, 150);
+        $lastSpace = strrpos($truncated, ' ');
+
+        if ($lastSpace !== false) {
+            $truncated = substr($truncated, 0, $lastSpace);
+        }
+
+        return $truncated . '...';
+    }
+
+    public function getNeedsTruncationProperty()
+    {
+        if (!$this->product->description) {
+            return false;
+        }
+
+        $plainText = strip_tags($this->product->description);
+        return strlen($plainText) > 150;
     }
 
     protected $rules = [

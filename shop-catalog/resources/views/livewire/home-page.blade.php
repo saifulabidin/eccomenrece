@@ -31,18 +31,6 @@
                 </div>
                 @endforeach
             </div>
-
-            <!-- Carousel Controls -->
-            @if(count($heroImages) > 1)
-            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
-            @endif
         </div>
         @else
         <!-- Modern Fallback Hero -->
@@ -91,7 +79,7 @@
     <!-- Featured Products Section -->
     <section id="featured" class="modern-section">
         <div class="container">
-            <div class="row mb-5">
+            <div class="row mb-2">
                 <div class="col-12 text-center">
                     <span class="section-badge">Pilihan Terbaik</span>
                     <h2 class="section-title">Produk Unggulan</h2>
@@ -99,13 +87,13 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-12">
+                <div class="col-14">
                     @livewire('featured-products')
                 </div>
             </div>
             <div class="text-center mt-5">
                 <a href="{{ route('catalog') }}" class="btn-modern btn-outline-modern btn-lg">
-                    <i class="fas fa-th-large me-2"></i>Lihat Semua Produk
+                    <i class="fas fa-th-medium me-1"></i>Lihat Semua Produk
                     <i class="fas fa-arrow-right ms-2"></i>
                 </a>
             </div>

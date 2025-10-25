@@ -119,3 +119,66 @@
 .modal.show {
     display: block !important;
 }
+
+/* Product Description Expand/Collapse Animations */
+.product-description-container {
+    position: relative;
+}
+
+.product-description {
+    transition: all 0.3s ease-in-out;
+    line-height: 1.6;
+}
+
+.product-description.collapsed {
+    max-height: none;
+    overflow: hidden;
+}
+
+.product-description.expanded {
+    max-height: none;
+    overflow: visible;
+}
+
+.description-toggle-btn {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    background: none;
+    padding: 4px 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.description-toggle-btn:hover {
+    color: #0d6efd !important;
+    text-decoration: underline !important;
+    transform: translateY(-1px);
+}
+
+.description-toggle-btn:focus {
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+}
+
+.description-toggle-btn .toggle-text {
+    transition: all 0.2s ease-in-out;
+}
+
+.description-toggle-btn i {
+    transition: transform 0.3s ease-in-out;
+    font-size: 0.8rem;
+}
+
+/* Smooth chevron animation */
+.description-toggle-btn:hover i {
+    transform: scale(1.2);
+}
+
+/* Ensure consistent spacing with the rest of the layout */
+.product-description {
+    margin-bottom: 0.5rem;
+}

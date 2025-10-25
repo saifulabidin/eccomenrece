@@ -1,9 +1,9 @@
 <div class="container-fluid py-4 catalog-page">
     <!-- Header Section -->
-    <div class="row mb-4">
+    <div class="row mb-8">
         <div class="col-12">
-            <div class="text-center mb-5">
-                <h1 class="display-5 fw-bold text-light mb-3">
+            <div class="text-center mb-8">
+                <h1 class="display-8 fw-bold text-light mb-2">
                     <i class="bi bi-shop text-primary me-3"></i>Katalog Produk
                 </h1>
                 <p class="text-muted lead">Temukan produk berkualitas dengan harga terbaik</p>
@@ -215,7 +215,7 @@
     <!-- Products Grid -->
     <div class="products-grid-container">
         @if($products->count() > 0)
-            <x-product-grid :products="$products" columns="col-xl-3 col-lg-4 col-md-6" />
+            <x-product-grid :products="$products" columns="col-lg-3 col-md-4 col-sm-6" />
         @else
                 <!-- Empty State -->
                 <div class="text-center py-5">
