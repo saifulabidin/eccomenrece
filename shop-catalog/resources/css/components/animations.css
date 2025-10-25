@@ -152,11 +152,6 @@
     box-shadow: none !important;
 }
 
-.description-toggle-btn:hover {
-    color: #0d6efd !important;
-    text-decoration: underline !important;
-    transform: translateY(-1px);
-}
 
 .description-toggle-btn:focus {
     box-shadow: none !important;
