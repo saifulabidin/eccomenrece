@@ -187,11 +187,6 @@
     background-color: #343a40;
 }
 
-.input-group .btn:hover {
-    background-color: #495057;
-    border-color: #6c757d;
-}
-
 /* Alert Enhancements */
 .alert {
     border-radius: 10px;
@@ -493,10 +488,6 @@
     outline: none;
 }
 
-.rating-input .star-btn:hover {
-    color: #ffc107;
-    transform: scale(1.1);
-}
 
 .rating-input .star-btn.active {
     color: #ffc107;
