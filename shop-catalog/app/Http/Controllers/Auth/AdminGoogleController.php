@@ -39,7 +39,7 @@ class AdminGoogleController extends Controller
             $isAdminInEnv = in_array($googleUser->getEmail(), $adminEmails);
             
             if (!$isAdminInDb && !$isAdminInEnv) {
-                return redirect()->route('admin.login')->with('error', 'Anda tidak memiliki akses admin.');
+                return redirect()->route('admin.login')->with('Bro Berfikir Bisa Login , Tidak Semudah Itu Ferguso');
             }
 
             // Find or create user
@@ -104,7 +104,7 @@ class AdminGoogleController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Admin Google authentication error: ' . $e->getMessage());
-            return redirect()->route('admin.login')->with('error', 'Terjadi kesalahan saat login dengan Google.');
+            return redirect()->route('admin.login')->with('error', 'Tanya kan pada developer');
         }
     }
 
@@ -123,7 +123,7 @@ class AdminGoogleController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login')->with('success', 'Anda telah berhasil logout dari admin panel.');
+        return redirect()->route('admin.login')->with('success', 'Anda telah berhasil logout hehe ');
     }
 
     /**

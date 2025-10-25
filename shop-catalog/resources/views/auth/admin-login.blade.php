@@ -13,7 +13,7 @@
 
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #494141ff 0%, #414042ff 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,7 +22,7 @@
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(41, 48, 49, 0.95);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             padding: 3rem;
@@ -37,18 +37,21 @@
         }
 
         .login-header h1 {
-            color: #333;
+            color: #ffffffff;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
         .login-header p {
-            color: #666;
+            color: #faf9f9ff;
             margin: 0;
         }
 
+        .login-header{
+            color: white;
+        }
         .google-btn {
-            background: #4285f4;
+            background: #f50202ff;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -61,12 +64,6 @@
             gap: 10px;
             width: 100%;
             margin-bottom: 1rem;
-        }
-
-        .google-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.3);
         }
 
         .alert {
@@ -89,7 +86,7 @@
         }
 
         .admin-info p {
-            color: #666;
+            color: #5719b9ff;
             margin: 0;
             font-size: 0.9rem;
         }
@@ -101,7 +98,7 @@
 
         .logo-section i {
             font-size: 3rem;
-            color: #4285f4;
+            color: #10cfddff;
             margin-bottom: 1rem;
         }
 
@@ -115,14 +112,9 @@
 </head>
 <body>
     <div class="login-container">
-        <div class="logo-section">
-            <i class="bi bi-shield-lock"></i>
-            <h1>Admin Panel</h1>
-        </div>
 
         <div class="login-header">
-            <h2>Login Admin</h2>
-            <p>Gunakan akun Google Anda untuk mengakses panel admin</p>
+            <h2>Login</h2>
         </div>
 
         <!-- Success/Alert Messages -->
@@ -140,25 +132,11 @@
             </div>
         @endif
 
-        <!-- Admin Info -->
-        <div class="admin-info">
-            <h6><i class="bi bi-info-circle me-2"></i>Informasi Akses</h6>
-            <p>Hanya pengguna dengan email terdaftar yang dapat mengakses panel admin ini. Pastikan Anda menggunakan akun Google yang telah diotorisasi.</p>
-        </div>
-
         <!-- Google Login Button -->
         <a href="{{ route('admin.auth.google') }}" class="google-btn">
             <i class="bi bi-google"></i>
             Login dengan Google
         </a>
-
-        <!-- Security Note -->
-        <div class="text-center mt-3">
-            <small class="text-muted">
-                <i class="bi bi-shield-check me-1"></i>
-                Koneksi aman dengan enkripsi SSL/TLS
-            </small>
-        </div>
     </div>
 
     <!-- Bootstrap JS Bundle -->
