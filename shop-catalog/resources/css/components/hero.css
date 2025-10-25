@@ -186,12 +186,6 @@
     height: 100%;
 }
 
-.feature-card:hover {
-    transform: translateY(-10px);
-    border-color: #667eea;
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-    background: rgba(102, 126, 234, 0.1);
-}
 
 .feature-icon-wrapper {
     width: 80px;
@@ -208,10 +202,6 @@
     transition: var(--transition);
 }
 
-.feature-card:hover .feature-icon-wrapper {
-    transform: scale(1.1);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-}
 
 .feature-title {
     font-size: 1.5rem;

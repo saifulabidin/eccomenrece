@@ -70,10 +70,6 @@
     transition: all 0.3s ease;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
 
 .btn-primary {
     background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
@@ -119,10 +115,6 @@
     transition: all 0.3s ease;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
 
 .btn-success {
     background: linear-gradient(135deg, #198754 0%, #20c997 100%);
@@ -478,9 +470,6 @@
     transition: all 0.2s ease;
 }
 
-.rating-stars .star:hover {
-    transform: scale(1.2);
-}
 
 .rating-stars .star.empty {
     color: rgba(255, 255, 255, 0.3);
