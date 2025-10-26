@@ -28,7 +28,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(\App\Filament\Pages\Auth\Login::class)
+            ->login()
+            ->loginRouteSlug('login')
             ->brandName('Admin Katalog Toko')
             ->favicon(asset('favicon.ico'))
             ->colors([
