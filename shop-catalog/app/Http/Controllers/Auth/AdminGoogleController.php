@@ -17,7 +17,7 @@ class AdminGoogleController extends Controller
     public function redirectToGoogle()
     {
         return Socialite::driver('google')
-            ->redirectUrl(env('APP_URL') . '/admin/auth/google/callback')
+            ->redirectUrl(config('app.url') . '/admin/auth/google/callback')
             ->scopes(['openid', 'profile', 'email'])
             ->redirect();
     }
@@ -29,7 +29,7 @@ class AdminGoogleController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')
-                ->redirectUrl(env('APP_URL') . '/admin/auth/google/callback')
+                ->redirectUrl(config('app.url') . '/admin/auth/google/callback')
                 ->user();
 
             // Check if user's email is authorized for admin access
