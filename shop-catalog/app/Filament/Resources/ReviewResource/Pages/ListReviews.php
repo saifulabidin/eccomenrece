@@ -21,10 +21,11 @@ class ListReviews extends ListRecords
         ];
     }
 
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            ReviewResource\Widgets\ReviewStats::class,
-        ];
-    }
+    // Hidden: Stats widget removed from header
+    // protected function getHeaderWidgets(): array
+    // {
+    //     return [
+    //         ReviewResource\Widgets\ReviewStats::class,
+    //     ];
+    // }
 }

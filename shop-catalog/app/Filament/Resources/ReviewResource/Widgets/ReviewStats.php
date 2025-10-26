@@ -8,6 +8,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class ReviewStats extends BaseWidget
 {
+    protected static ?int $sort = 2;
+    
     protected function getStats(): array
     {
         $totalReviews = Review::count();

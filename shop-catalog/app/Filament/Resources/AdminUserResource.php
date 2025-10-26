@@ -18,9 +18,9 @@ class AdminUserResource extends Resource
     protected static ?string $model = AdminUser::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?string $navigationLabel = 'Admin Users';
-    protected static ?string $modelLabel = 'Admin User';
-    protected static ?string $pluralModelLabel = 'Admin Users';
+    protected static ?string $navigationLabel = 'Pengguna Admin';
+    protected static ?string $modelLabel = 'Pengguna Admin';
+    protected static ?string $pluralModelLabel = 'Pengguna Admin';
     // protected static ?string $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 1;
 

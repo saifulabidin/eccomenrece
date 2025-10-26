@@ -19,6 +19,9 @@ class StoreConfigResource extends Resource
     protected static ?string $model = StoreConfig::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationLabel = 'Konfigurasi Toko';
+    protected static ?string $modelLabel = 'Konfigurasi Toko';
+    protected static ?string $pluralModelLabel = 'Konfigurasi Toko';
 
     public static function form(Form $form): Form
     {
