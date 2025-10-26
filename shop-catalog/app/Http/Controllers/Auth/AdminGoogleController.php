@@ -100,7 +100,8 @@ class AdminGoogleController extends Controller
                 'admin_login_time' => now(),
             ]);
 
-            return redirect()->route('filament.admin.pages.dashboard');
+            // Redirect to admin panel
+            return redirect('/admin');
 
         } catch (\Exception $e) {
             \Log::error('Admin Google authentication error: ' . $e->getMessage());

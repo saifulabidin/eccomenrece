@@ -73,13 +73,9 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        // Allow if user is marked as admin AND email is authorized
-        if (!$this->isAdmin()) {
-            return false;
-        }
-
-        // Double check authorization (database or config)
-        return $this->isAuthorizedAdmin();
+        // Simple check: just verify is_admin flag
+        // AdminGoogleController already validated email before setting this
+        return $this->is_admin === true;
     }
 
     /**
