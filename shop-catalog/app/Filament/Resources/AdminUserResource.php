@@ -21,7 +21,7 @@ class AdminUserResource extends Resource
     protected static ?string $navigationLabel = 'Admin Users';
     protected static ?string $modelLabel = 'Admin User';
     protected static ?string $pluralModelLabel = 'Admin Users';
-    protected static ?string $navigationGroup = 'Settings';
+    // protected static ?string $navigationGroup = 'Settings';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -39,19 +39,19 @@ class AdminUserResource extends Resource
                             ->maxLength(255)
                             ->placeholder('admin@example.com')
                             ->helperText('Google account email that will have admin access'),
-                        
+
                         Forms\Components\TextInput::make('name')
                             ->label('Name')
                             ->maxLength(255)
                             ->placeholder('Admin Name (optional)')
                             ->helperText('Optional: Display name for this admin'),
-                        
+
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->default(true)
                             ->helperText('Only active admins can access the panel')
                             ->inline(false),
-                        
+
                         Forms\Components\Textarea::make('notes')
                             ->label('Notes')
                             ->rows(3)
@@ -72,13 +72,13 @@ class AdminUserResource extends Resource
                     ->copyable()
                     ->icon('heroicon-m-envelope')
                     ->iconColor('primary'),
-                
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
                     ->sortable()
                     ->placeholder('-'),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()
@@ -87,13 +87,13 @@ class AdminUserResource extends Resource
                     ->trueColor('success')
                     ->falseColor('danger')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Added')
                     ->dateTime('d M Y, H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Updated')
                     ->dateTime('d M Y, H:i')

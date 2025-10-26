@@ -12,6 +12,7 @@
 @import './components/hero.css';
 @import './components/product-cards.css';
 @import './components/cart.css';
+@import './components/variants.css';
 @import './components/catalog.css';
 @import './components/forms-buttons.css';
 @import './components/responsive.css';

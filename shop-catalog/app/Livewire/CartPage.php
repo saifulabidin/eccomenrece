@@ -15,12 +15,28 @@ class CartPage extends Component
     public $customerAddress = '';
     public $showForm = false;
 
-    public function confirmRemove($productId)
+    // Variant selection properties
+    public $showVariantModal = false;
+    public $editingCartItem = null;
+    public $editingProduct = null;
+    public $selectedSize = null;
+    public $selectedColor = null;
+    public $selectedVariant = null;
+
+    public function confirmRemove($cartKey)
     {
-        $this->itemToRemove = $productId;
+        $this->itemToRemove = $cartKey;
     }
 
     protected $listeners = ['add-to-cart' => 'addToCart'];
+
+    // Debug: Add render hook to check component state
+    public function dehydrate()
+    {
+        if ($this->showVariantModal) {
+            \Log::info('Component dehydrate - showVariantModal: true, editingProduct: ' . ($this->editingProduct ? $this->editingProduct->name : 'null'));
+        }
+    }
 
     protected $rules = [
         'customerName' => 'required|string|min:3|max:50',
@@ -50,22 +66,39 @@ class CartPage extends Component
     public function addToCart($data)
     {
         $productId = $data['productId'];
+        $variantId = $data['variantId'] ?? null;
         $quantity = $data['quantity'] ?? 1;
 
         $product = Product::find($productId);
         if (!$product) return;
 
         $cart = session('cart', []);
+        $cartKey = $variantId ? $productId . '_' . $variantId : $productId;
 
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] += $quantity;
+        $itemName = $product->name;
+        $itemPrice = $product->price;
+        $itemImage = $product->images[0] ?? null;
+
+        if ($variantId) {
+            $variant = $product->variants()->find($variantId);
+            if ($variant) {
+                $itemName .= ' - ' . $variant->display;
+                $itemPrice = $variant->final_price;
+                $itemImage = $variant->images[0] ?? $itemImage;
+            }
+        }
+
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity'] += $quantity;
         } else {
-            $cart[$productId] = [
+            $cart[$cartKey] = [
                 'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
+                'variant_id' => $variantId,
+                'name' => $itemName,
+                'price' => $itemPrice,
                 'quantity' => $quantity,
-                'image' => $product->images[0] ?? null,
+                'image' => $itemImage,
+                'has_variants' => $variantId !== null,
             ];
         }
 
@@ -76,15 +109,15 @@ class CartPage extends Component
         session()->flash('message', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
-    public function updateQuantity($productId, $quantity)
+    public function updateQuantity($cartKey, $quantity)
     {
         $cart = session('cart', []);
 
         if ($quantity <= 0) {
-            unset($cart[$productId]);
+            unset($cart[$cartKey]);
         } else {
-            if (isset($cart[$productId])) {
-                $cart[$productId]['quantity'] = $quantity;
+            if (isset($cart[$cartKey])) {
+                $cart[$cartKey]['quantity'] = $quantity;
             }
         }
 
@@ -92,26 +125,50 @@ class CartPage extends Component
         $this->loadCart();
     }
 
-    public function incrementQuantity($productId)
+    public function incrementQuantity($cartKey)
     {
         $cart = session('cart', []);
 
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
+        if (isset($cart[$cartKey])) {
+            // Get product and variant to check stock
+            $productId = is_numeric($cartKey) ? $cartKey : explode('_', $cartKey)[0];
+            $variantId = is_numeric($cartKey) ? null : explode('_', $cartKey)[1] ?? null;
+            
+            $product = Product::find($productId);
+            if (!$product) {
+                session()->flash('error', 'Produk tidak ditemukan!');
+                return;
+            }
+
+            // Check stock limit
+            $availableStock = $product->stock;
+            if ($variantId) {
+                $variant = $product->variants()->find($variantId);
+                if ($variant) {
+                    $availableStock = $variant->stock;
+                }
+            }
+
+            if ($cart[$cartKey]['quantity'] >= $availableStock) {
+                session()->flash('error', 'Stok tidak mencukupi! Maksimal ' . $availableStock . ' pcs');
+                return;
+            }
+
+            $cart[$cartKey]['quantity']++;
             session(['cart' => $cart]);
             $this->loadCart();
         }
     }
 
-    public function decrementQuantity($productId)
+    public function decrementQuantity($cartKey)
     {
         $cart = session('cart', []);
 
-        if (isset($cart[$productId])) {
-            if ($cart[$productId]['quantity'] > 1) {
-                $cart[$productId]['quantity']--;
+        if (isset($cart[$cartKey])) {
+            if ($cart[$cartKey]['quantity'] > 1) {
+                $cart[$cartKey]['quantity']--;
             } else {
-                unset($cart[$productId]);
+                unset($cart[$cartKey]);
             }
             session(['cart' => $cart]);
             $this->loadCart();
@@ -142,6 +199,243 @@ class CartPage extends Component
         $this->itemToRemove = null;
 
         session()->flash('success', "{$productName} berhasil dihapus dari keranjang!");
+    }
+
+    public function editVariant($cartKey)
+    {
+        // Debug: Log the method call
+        \Log::info('editVariant called with cartKey: ' . $cartKey);
+
+        $cart = session('cart', []);
+        if (!isset($cart[$cartKey])) {
+            \Log::warning('Cart item not found for key: ' . $cartKey);
+            return;
+        }
+
+        $cartItem = $cart[$cartKey];
+        if (!$cartItem['variant_id']) {
+            \Log::info('Cart item has no variant_id, skipping');
+            return; // Only for variant products
+        }
+
+        $product = Product::find($cartItem['id']);
+        if (!$product) {
+            \Log::warning('Product not found for id: ' . $cartItem['id']);
+            return;
+        }
+
+        \Log::info('Found product: ' . $product->name);
+
+        // Load the product with variant relationships
+        $product->load(['variants.combinations.variantAttribute', 'variantAttributes']);
+
+        // Set editing item and product
+        $this->editingCartItem = $cartKey;
+        $this->editingProduct = $product;
+        \Log::info('Set editingCartItem: ' . $cartKey . ', editingProduct: ' . $product->name);
+
+        // Reset selection
+        $this->selectedSize = null;
+        $this->selectedColor = null;
+        $this->selectedVariant = null;
+
+        // Set current variant as selected
+        $currentVariant = $product->variants()->find($cartItem['variant_id']);
+        if ($currentVariant) {
+            $this->selectedVariant = $currentVariant;
+            \Log::info('Found current variant: ' . $currentVariant->name);
+
+            // Set size and color based on current variant
+            foreach ($currentVariant->combinations as $combination) {
+                if ($combination->variantAttribute->attribute_type === 'size') {
+                    $this->selectedSize = $combination->attribute_value;
+                    \Log::info('Set selectedSize: ' . $combination->attribute_value);
+                } elseif ($combination->variantAttribute->attribute_type === 'color') {
+                    $this->selectedColor = $combination->attribute_value;
+                    \Log::info('Set selectedColor: ' . $combination->attribute_value);
+                }
+            }
+        } else {
+            \Log::warning('Current variant not found: ' . $cartItem['variant_id']);
+        }
+
+        $this->showVariantModal = true;
+        \Log::info('Set showVariantModal to true');
+    }
+
+    public function updateSelectedVariant()
+    {
+        if (!$this->editingProduct) {
+            return;
+        }
+
+        if (!$this->editingProduct->has_variants) {
+            $this->selectedVariant = null;
+            return;
+        }
+
+        $variants = $this->editingProduct->variants()->active()->inStock()->get();
+
+        foreach ($variants as $variant) {
+            $sizeMatch = !$this->selectedSize || $variant->combinations->contains(function ($combination) {
+                return $combination->variantAttribute->attribute_type === 'size' &&
+                       $combination->attribute_value === $this->selectedSize;
+            });
+
+            $colorMatch = !$this->selectedColor || $variant->combinations->contains(function ($combination) {
+                return $combination->variantAttribute->attribute_type === 'color' &&
+                       $combination->attribute_value === $this->selectedColor;
+            });
+
+            $sizeRequired = $this->editingProduct->variantAttributes()->where('attribute_type', 'size')->exists();
+            $colorRequired = $this->editingProduct->variantAttributes()->where('attribute_type', 'color')->exists();
+
+            if ($sizeMatch && $colorMatch) {
+                $hasRequiredAttributes = true;
+                if ($sizeRequired && !$this->selectedSize) $hasRequiredAttributes = false;
+                if ($colorRequired && !$this->selectedColor) $hasRequiredAttributes = false;
+
+                if ($hasRequiredAttributes) {
+                    $this->selectedVariant = $variant;
+                    return;
+                }
+            }
+        }
+
+        $this->selectedVariant = null;
+    }
+
+    public function updatedSelectedSize()
+    {
+        $this->updateSelectedVariant();
+    }
+
+    public function updatedSelectedColor()
+    {
+        $this->updateSelectedVariant();
+    }
+
+    public function saveVariantChange()
+    {
+        if (!$this->editingCartItem || !$this->selectedVariant) {
+            session()->flash('error', 'Silakan pilih variant terlebih dahulu!');
+            return;
+        }
+
+        $cart = session('cart', []);
+        if (!isset($cart[$this->editingCartItem])) {
+            return;
+        }
+
+        $oldItem = $cart[$this->editingCartItem];
+        $product = Product::find($oldItem['id']);
+        if (!$product) {
+            return;
+        }
+
+        // Remove old cart item
+        unset($cart[$this->editingCartItem]);
+
+        // Add new cart item with new variant
+        $newCartKey = $product->id . '_' . $this->selectedVariant->id;
+
+        $cart[$newCartKey] = [
+            'id' => $product->id,
+            'variant_id' => $this->selectedVariant->id,
+            'name' => $product->name . ' - ' . $this->selectedVariant->display,
+            'price' => $this->selectedVariant->final_price,
+            'quantity' => $oldItem['quantity'],
+            'image' => $this->selectedVariant->images[0] ?? $product->images[0] ?? null,
+            'has_variants' => true,
+        ];
+
+        session(['cart' => $cart]);
+        $this->loadCart();
+        $this->dispatch('cart-updated');
+
+        $this->showVariantModal = false;
+        $this->editingCartItem = null;
+        $this->editingProduct = null;
+        $this->selectedSize = null;
+        $this->selectedColor = null;
+        $this->selectedVariant = null;
+
+        session()->flash('success', 'Variant berhasil diubah!');
+    }
+
+    public function cancelVariantChange()
+    {
+        $this->showVariantModal = false;
+        $this->editingCartItem = null;
+        $this->editingProduct = null;
+        $this->selectedSize = null;
+        $this->selectedColor = null;
+        $this->selectedVariant = null;
+    }
+
+    // Computed properties for variant selection
+    public function getAvailableSizesProperty()
+    {
+        if (!$this->editingProduct || !$this->selectedColor) {
+            return $this->editingProduct->available_variant_sizes ?? [];
+        }
+
+        $sizes = $this->editingProduct->variants()
+            ->whereHas('combinations', function ($query) {
+                $query->where('attribute_value', $this->selectedColor)
+                      ->whereHas('variantAttribute', function ($q) {
+                          $q->where('attribute_type', 'color');
+                      });
+            })
+            ->active()
+            ->inStock()
+            ->get()
+            ->flatMap(function ($variant) {
+                return $variant->combinations
+                    ->filter(function ($combination) {
+                        return $combination->variantAttribute->attribute_type === 'size';
+                    })
+                    ->pluck('attribute_value');
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Sort sizes alphabetically to maintain consistent ordering
+        sort($sizes);
+        return $sizes;
+    }
+
+    public function getAvailableColorsProperty()
+    {
+        if (!$this->editingProduct || !$this->selectedSize) {
+            return $this->editingProduct->available_variant_colors ?? [];
+        }
+
+        $colors = $this->editingProduct->variants()
+            ->whereHas('combinations', function ($query) {
+                $query->where('attribute_value', $this->selectedSize)
+                      ->whereHas('variantAttribute', function ($q) {
+                          $q->where('attribute_type', 'size');
+                      });
+            })
+            ->active()
+            ->inStock()
+            ->get()
+            ->flatMap(function ($variant) {
+                return $variant->combinations
+                    ->filter(function ($combination) {
+                        return $combination->variantAttribute->attribute_type === 'color';
+                    })
+                    ->pluck('attribute_value');
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Sort colors alphabetically to maintain consistent ordering
+        sort($colors);
+        return $colors;
     }
 
     public function calculateTotal()

@@ -14,10 +14,14 @@ class ProductDetail extends Component
     public $customerAddress = '';
     public $showForm = false;
     public $showFullDescription = false;
+    public $selectedVariant = null;
+    public $selectedSize = null;
+    public $selectedColor = null;
 
     public function mount($slug)
     {
         $this->product = Product::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        $this->product->loadVariantData();
     }
 
     public function toggleDescription()
@@ -86,9 +90,11 @@ class ProductDetail extends Component
 
     public function incrementQuantity()
     {
-        $maxStock = $this->product->stock ?? 999;
+        $maxStock = $this->current_stock ?? 999;
         if ($this->quantity < $maxStock) {
             $this->quantity++;
+        } else {
+            session()->flash('error', 'Jumlah barang melebihi stok yang tersedia! Stok: ' . $maxStock . ' pcs');
         }
     }
 
@@ -99,17 +105,192 @@ class ProductDetail extends Component
         }
     }
 
+    public function updatedSelectedSize()
+    {
+        $this->updateSelectedVariant();
+        // Reset quantity to 1 when variant changes
+        $this->quantity = 1;
+    }
+
+    public function updatedSelectedColor()
+    {
+        $this->updateSelectedVariant();
+        // Reset quantity to 1 when variant changes
+        $this->quantity = 1;
+    }
+
+    public function updatedQuantity($value)
+    {
+        $maxStock = $this->current_stock ?? 999;
+        if ($value > $maxStock) {
+            $this->quantity = $maxStock;
+            session()->flash('error', 'Jumlah barang melebihi stok yang tersedia! Stok: ' . $maxStock . ' pcs');
+        } elseif ($value < 1) {
+            $this->quantity = 1;
+        }
+    }
+
+    public function updateSelectedVariant()
+    {
+        if (!$this->product->has_variants) {
+            $this->selectedVariant = null;
+            return;
+        }
+
+        $variants = $this->product->variants()->active()->inStock()->get();
+
+        foreach ($variants as $variant) {
+            $sizeMatch = !$this->selectedSize || $variant->combinations->contains(function ($combination) {
+                return $combination->variantAttribute->attribute_type === 'size' &&
+                       $combination->attribute_value === $this->selectedSize;
+            });
+
+            $colorMatch = !$this->selectedColor || $variant->combinations->contains(function ($combination) {
+                return $combination->variantAttribute->attribute_type === 'color' &&
+                       $combination->attribute_value === $this->selectedColor;
+            });
+
+            $sizeRequired = $this->product->variantAttributes()->where('attribute_type', 'size')->exists();
+            $colorRequired = $this->product->variantAttributes()->where('attribute_type', 'color')->exists();
+
+            if ($sizeMatch && $colorMatch) {
+                $hasRequiredAttributes = true;
+                if ($sizeRequired && !$this->selectedSize) $hasRequiredAttributes = false;
+                if ($colorRequired && !$this->selectedColor) $hasRequiredAttributes = false;
+
+                if ($hasRequiredAttributes) {
+                    $this->selectedVariant = $variant;
+                    return;
+                }
+            }
+        }
+
+        $this->selectedVariant = null;
+    }
+
+    public function getAvailableSizesProperty()
+    {
+        if (!$this->selectedColor || !$this->product->has_variants) {
+            return $this->product->available_variant_sizes;
+        }
+
+        $sizes = $this->product->variants()
+            ->whereHas('combinations', function ($query) {
+                $query->where('attribute_value', $this->selectedColor)
+                      ->whereHas('variantAttribute', function ($q) {
+                          $q->where('attribute_type', 'color');
+                      });
+            })
+            ->active()
+            ->inStock()
+            ->get()
+            ->flatMap(function ($variant) {
+                return $variant->combinations
+                    ->filter(function ($combination) {
+                        return $combination->variantAttribute->attribute_type === 'size';
+                    })
+                    ->pluck('attribute_value');
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Sort sizes alphabetically to maintain consistent ordering
+        sort($sizes);
+        return $sizes;
+    }
+
+    public function getAvailableColorsProperty()
+    {
+        if (!$this->selectedSize || !$this->product->has_variants) {
+            return $this->product->available_variant_colors;
+        }
+
+        $colors = $this->product->variants()
+            ->whereHas('combinations', function ($query) {
+                $query->where('attribute_value', $this->selectedSize)
+                      ->whereHas('variantAttribute', function ($q) {
+                          $q->where('attribute_type', 'size');
+                      });
+            })
+            ->active()
+            ->inStock()
+            ->get()
+            ->flatMap(function ($variant) {
+                return $variant->combinations
+                    ->filter(function ($combination) {
+                        return $combination->variantAttribute->attribute_type === 'color';
+                    })
+                    ->pluck('attribute_value');
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // Sort colors alphabetically to maintain consistent ordering
+        sort($colors);
+        return $colors;
+    }
+
+    public function getCurrentPriceProperty()
+    {
+        if ($this->product->has_variants && $this->selectedVariant) {
+            return $this->selectedVariant->final_price;
+        }
+
+        return $this->product->discount_price ?? $this->product->price;
+    }
+
+    public function getPriceRangeProperty()
+    {
+        if (!$this->product->has_variants) {
+            return null;
+        }
+
+        $variants = $this->product->variants()->active()->inStock()->get();
+        if ($variants->isEmpty()) {
+            return null;
+        }
+
+        $prices = $variants->pluck('final_price');
+        $minPrice = $prices->min();
+        $maxPrice = $prices->max();
+
+        if ($minPrice === $maxPrice) {
+            return 'Rp ' . number_format($minPrice, 0, ',', '.');
+        }
+
+        return 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - Rp ' . number_format($maxPrice, 0, ',', '.');
+    }
+
+    public function getCurrentStockProperty()
+    {
+        // Force fresh data from database to avoid cache issues
+        if ($this->product->has_variants && $this->selectedVariant) {
+            // Refresh variant from database to get latest stock
+            $freshVariant = $this->product->variants()->find($this->selectedVariant->id);
+            return $freshVariant ? $freshVariant->stock : 0;
+        }
+
+        return $this->product->stock ?? 999;
+    }
+
     public function checkoutNow()
     {
         $this->validate();
+
+        $productName = $this->product->name;
+        if ($this->product->has_variants && $this->selectedVariant) {
+            $productName .= ' - ' . $this->selectedVariant->display;
+        }
 
         $message = "PESANAN BARU\n\n";
         $message .= "Data Pelanggan:\n";
         $message .= "Nama: {$this->customerName}\n";
         $message .= "Alamat: {$this->customerAddress}\n\n";
         $message .= "Detail Pesanan:\n";
-        $message .= "• {$this->product->name} (Qty: {$this->quantity}) - Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n";
-        $message .= "\nTotal Pembayaran: Rp " . number_format($this->product->price * $this->quantity, 0, ',', '.') . "\n\n";
+        $message .= "• {$productName} (Qty: {$this->quantity}) - Rp " . number_format($this->current_price * $this->quantity, 0, ',', '.') . "\n";
+        $message .= "\nTotal Pembayaran: Rp " . number_format($this->current_price * $this->quantity, 0, ',', '.') . "\n\n";
         $message .= "Mohon konfirmasi pesanan saya. Terima kasih!";
 
         $config = StoreConfig::first() ?? (object)['whatsapp_number' => '6281234567890'];
@@ -123,17 +304,43 @@ class ProductDetail extends Component
 
     public function addToCart()
     {
-        $cart = session('cart', []);
+        if ($this->product->has_variants && !$this->selectedVariant) {
+            session()->flash('error', 'Silakan pilih variant produk terlebih dahulu!');
+            return;
+        }
 
-        if (isset($cart[$this->product->id])) {
-            $cart[$this->product->id]['quantity'] += $this->quantity;
+        $maxStock = $this->current_stock ?? 999;
+
+        // Check if adding to cart exceeds stock
+        $cart = session('cart', []);
+        $cartKey = $this->product->has_variants
+            ? $this->product->id . '_' . $this->selectedVariant->id
+            : $this->product->id;
+
+        $currentCartQuantity = $cart[$cartKey]['quantity'] ?? 0;
+        $requestedTotal = $currentCartQuantity + $this->quantity;
+
+        if ($requestedTotal > $maxStock) {
+            session()->flash('error', 'Jumlah barang melebihi stok yang tersedia! Stok: ' . $maxStock . ' pcs, sudah ada ' . $currentCartQuantity . ' pcs di keranjang');
+            return;
+        }
+
+        $itemName = $this->product->name;
+        if ($this->product->has_variants && $this->selectedVariant) {
+            $itemName .= ' - ' . $this->selectedVariant->display;
+        }
+
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity'] += $this->quantity;
         } else {
-            $cart[$this->product->id] = [
+            $cart[$cartKey] = [
                 'id' => $this->product->id,
-                'name' => $this->product->name,
-                'price' => $this->product->price,
+                'variant_id' => $this->selectedVariant?->id,
+                'name' => $itemName,
+                'price' => $this->current_price,
                 'quantity' => $this->quantity,
-                'image' => $this->product->images[0] ?? null,
+                'image' => $this->selectedVariant?->images[0] ?? $this->product->images[0] ?? null,
+                'has_variants' => $this->product->has_variants,
             ];
         }
 

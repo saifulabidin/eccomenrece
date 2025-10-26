@@ -40,26 +40,19 @@ class Product extends Model
 
     public function getHasVariantsAttribute()
     {
-        return (bool) ($this->attributes['has_variants'] ?? false);
+        return $this->getAttribute('has_variants');
     }
 
     public function getDisplayPriceAttribute()
     {
         if ($this->getHasVariantsAttribute()) {
-            $variants = $this->activeVariants()->get();
-            if ($variants->count() > 0) {
-                $minPrice = $variants->min(function ($variant) {
-                    return $variant->final_price;
-                });
-                $maxPrice = $variants->max(function ($variant) {
-                    return $variant->final_price;
-                });
+            $minPrice = $this->activeVariants()->min('final_price');
+            $maxPrice = $this->activeVariants()->max('final_price');
 
-                if ($minPrice && $maxPrice) {
-                    return $minPrice == $maxPrice
-                        ? 'Rp ' . number_format($minPrice, 0, ',', '.')
-                        : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - Rp ' . number_format($maxPrice, 0, ',', '.');
-                }
+            if ($minPrice && $maxPrice) {
+                return $minPrice == $maxPrice
+                    ? 'Rp ' . number_format($minPrice, 0, ',', '.')
+                    : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - Rp ' . number_format($maxPrice, 0, ',', '.');
             }
 
             return 'Rp ' . number_format($this->price, 0, ',', '.');
@@ -70,54 +63,32 @@ class Product extends Model
 
     public function getAvailableVariantSizesAttribute()
     {
-        if (!$this->relationLoaded('variants')) {
-            $this->load(['variants.combinations.variantAttribute']);
-        }
-
-        $sizes = $this->variants
-            ->filter(function ($variant) {
-                return $variant->is_active && $variant->stock > 0;
-            })
-            ->flatMap(function ($variant) {
-                return $variant->combinations
-                    ->filter(function ($combination) {
-                        return $combination->variantAttribute->attribute_type === 'size';
-                    })
-                    ->pluck('attribute_value');
+        return $this->variantAttributes()
+            ->byType('size')
+            ->active()
+            ->with('variants')
+            ->get()
+            ->flatMap(function ($attribute) {
+                return $attribute->display_values;
             })
             ->unique()
             ->values()
             ->toArray();
-
-        // Sort sizes alphabetically to maintain consistent ordering
-        sort($sizes);
-        return $sizes;
     }
 
     public function getAvailableVariantColorsAttribute()
     {
-        if (!$this->relationLoaded('variants')) {
-            $this->load(['variants.combinations.variantAttribute']);
-        }
-
-        $colors = $this->variants
-            ->filter(function ($variant) {
-                return $variant->is_active && $variant->stock > 0;
-            })
-            ->flatMap(function ($variant) {
-                return $variant->combinations
-                    ->filter(function ($combination) {
-                        return $combination->variantAttribute->attribute_type === 'color';
-                    })
-                    ->pluck('attribute_value');
+        return $this->variantAttributes()
+            ->byType('color')
+            ->active()
+            ->with('variants')
+            ->get()
+            ->flatMap(function ($attribute) {
+                return $attribute->display_values;
             })
             ->unique()
             ->values()
             ->toArray();
-
-        // Sort colors alphabetically to maintain consistent ordering
-        sort($colors);
-        return $colors;
     }
 
     public function generateVariantSku($size, $color)
@@ -129,7 +100,7 @@ class Product extends Model
         return implode('-', array_filter([$baseSku, $sizeCode, $colorCode]));
     }
 
-    public function createVariantCombination($attributes, $price = null, $stock = 10)
+    public function createVariantCombination($attributes, $price = null, $stock = 0)
     {
         $size = $attributes['size'] ?? null;
         $color = $attributes['color'] ?? null;
@@ -139,20 +110,11 @@ class Product extends Model
         if ($size) $name .= " - {$size}";
         if ($color) $name .= " - {$color}";
 
-        // Ensure variant has a price - use provided price first, then parent price, then default
-        $variantPrice = $price ?? $this->price ?? 1000000; // Default to Rp 1.000.000 if no price is set
-
-        // Only set discount price if it's valid (lower than regular price)
-        $discountPrice = null;
-        if ($this->discount_price && $this->discount_price < $variantPrice) {
-            $discountPrice = $this->discount_price;
-        }
-
         $variant = $this->variants()->create([
             'sku' => $sku,
             'name' => $name,
-            'price' => $variantPrice,
-            'discount_price' => $discountPrice,
+            'price' => $price ?? $this->price,
+            'discount_price' => $this->discount_price,
             'stock' => $stock,
             'is_active' => true,
         ]);
@@ -176,38 +138,8 @@ class Product extends Model
         $sizeAttribute = $this->variantAttributes()->byType('size')->active()->first();
         $colorAttribute = $this->variantAttributes()->byType('color')->active()->first();
 
-        $sizes = [null];
-        $colors = [null];
-
-        // Extract size values with better error handling
-        if ($sizeAttribute) {
-            $sizeValues = $sizeAttribute->attribute_values;
-            if (is_array($sizeValues) && !empty($sizeValues)) {
-                $sizes = $sizeValues;
-            } elseif (is_string($sizeValues)) {
-                $decoded = json_decode($sizeValues, true);
-                if (is_array($decoded) && !empty($decoded)) {
-                    $sizes = $decoded;
-                } elseif (strpos($sizeValues, ',') !== false) {
-                    $sizes = array_map('trim', explode(',', $sizeValues));
-                }
-            }
-        }
-
-        // Extract color values with better error handling
-        if ($colorAttribute) {
-            $colorValues = $colorAttribute->attribute_values;
-            if (is_array($colorValues) && !empty($colorValues)) {
-                $colors = $colorValues;
-            } elseif (is_string($colorValues)) {
-                $decoded = json_decode($colorValues, true);
-                if (is_array($decoded) && !empty($decoded)) {
-                    $colors = $decoded;
-                } elseif (strpos($colorValues, ',') !== false) {
-                    $colors = array_map('trim', explode(',', $colorValues));
-                }
-            }
-        }
+        $sizes = $sizeAttribute ? (is_array($sizeAttribute->attribute_values) ? $sizeAttribute->attribute_values : json_decode($sizeAttribute->attribute_values, true)) : [null];
+        $colors = $colorAttribute ? (is_array($colorAttribute->attribute_values) ? $colorAttribute->attribute_values : json_decode($colorAttribute->attribute_values, true)) : [null];
 
         $variants = collect();
 
@@ -237,19 +169,6 @@ class Product extends Model
         return $query->where('has_variants', true)->whereHas('variants', function ($q) {
             $q->active()->inStock();
         });
-    }
-
-    /**
-     * Optimize variant loading by preloading relationships
-     */
-    public function loadVariantData()
-    {
-        return $this->load([
-            'variants.combinations.variantAttribute',
-            'variantAttributes' => function ($query) {
-                $query->active()->orderBy('attribute_type');
-            }
-        ]);
     }
 
     /**

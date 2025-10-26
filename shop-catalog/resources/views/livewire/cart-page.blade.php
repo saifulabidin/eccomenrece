@@ -48,8 +48,21 @@
                             </h5>
                         </div>
                         <div class="card-body p-0">
-                            @foreach($cart as $productId => $item)
-                                <?php $product = \App\Models\Product::find($productId); ?>
+                            @foreach($cart as $cartKey => $item)
+                                <?php
+                                $productId = is_numeric($cartKey) ? $cartKey : explode('_', $cartKey)[0];
+                                $variantId = is_numeric($cartKey) ? null : (explode('_', $cartKey)[1] ?? null);
+                                $product = \App\Models\Product::find($productId);
+                                
+                                // Get available stock
+                                $availableStock = $product ? $product->stock : 0;
+                                if ($variantId && $product) {
+                                    $variant = $product->variants()->find($variantId);
+                                    if ($variant) {
+                                        $availableStock = $variant->stock;
+                                    }
+                                }
+                                ?>
                                 <div class="cart-item border-bottom border-secondary p-3">
                                     <div class="row g-3 align-items-center">
                                         <!-- Image -->
@@ -71,6 +84,11 @@
                                         <div class="col-9 col-md-5">
                                             <h6 class="text-light mb-1">{{ $item['name'] }}</h6>
                                             <p class="text-muted small mb-0">{{ $product->category->name ?? 'Tanpa Kategori' }}</p>
+                                            @if($item['has_variants'] ?? false)
+                                                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-1">
+                                                    Variant
+                                                </span>
+                                            @endif
                                             <div class="text-primary fw-semibold mt-1">
                                                 Rp {{ number_format($item['price'], 0, ',', '.') }}
                                             </div>
@@ -78,21 +96,27 @@
 
                                         <!-- Quantity -->
                                         <div class="col-6 col-md-3">
-                                            <div class="d-flex align-items-center">
-                                                <label class="text-muted small me-2">Qty:</label>
-                                                <div class="input-group input-group-sm" style="width: 120px;">
-                                                    <button class="btn btn-outline-secondary" wire:click="decrementQuantity({{ $productId }})" @disabled($item['quantity'] <= 1)>
+                                            <div class="d-flex flex-column">
+                                                <label class="text-muted small mb-1">Qty:</label>
+                                                <div class="input-group input-group-sm mb-1" style="width: 120px;">
+                                                    <button class="btn btn-outline-secondary" 
+                                                            wire:click="decrementQuantity('{{ $cartKey }}')" 
+                                                            wire:loading.attr="disabled">
                                                         <i class="bi bi-dash"></i>
                                                     </button>
-                                                    <input type="number"
+                                                    <input type="text"
                                                            class="form-control text-center bg-dark border-secondary text-light"
-                                                           wire:model.live="cart.{{ $productId }}.quantity"
-                                                           min="1"
-                                                           value="{{ $item['quantity'] }}">
-                                                    <button class="btn btn-outline-secondary" wire:click="incrementQuantity({{ $productId }})">
+                                                           value="{{ $item['quantity'] }}"
+                                                           readonly
+                                                           style="cursor: default;">
+                                                    <button class="btn btn-outline-secondary" 
+                                                            wire:click="incrementQuantity('{{ $cartKey }}')" 
+                                                            wire:loading.attr="disabled"
+                                                            @if($item['quantity'] >= $availableStock) disabled @endif>
                                                         <i class="bi bi-plus"></i>
                                                     </button>
                                                 </div>
+                                                <small class="text-muted" style="font-size: 0.7rem;">Stok: {{ $availableStock }} pcs</small>
                                             </div>
                                         </div>
 
@@ -101,11 +125,13 @@
                                             <div class="text-light fw-bold mb-2">
                                                 Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}
                                             </div>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    wire:click="confirmRemove({{ $productId }})"
-                                                    title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="d-flex gap-1 justify-content-end">
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        wire:click="confirmRemove('{{ $cartKey }}')"
+                                                        title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -182,6 +208,7 @@
                                            id="customerName"
                                            wire:model="customerName"
                                            placeholder="Masukkan nama lengkap Anda">
+                                           
                                     @error('customerName')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -250,6 +277,116 @@
                             <i class="bi bi-trash me-1"></i>Hapus
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Variant Change Modal -->
+    @if($showVariantModal)
+        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+        <div class="modal fade show d-block" style="z-index: 1050;" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content bg-dark border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title text-light">
+                            <i class="bi bi-palette text-primary me-2"></i>Ubah Variant
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cancelVariantChange"></button>
+                    </div>
+                    <form wire:submit.prevent="saveVariantChange">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Product Info -->
+                                    <div class="product-info mb-4">
+                                        <h6 class="text-light mb-2">{{ $editingProduct->name }}</h6>
+                                        @if($editingProduct->images)
+                                            <div class="product-image mb-3">
+                                                <img src="{{ asset('storage/' . $editingProduct->images[0]) }}"
+                                                     class="img-fluid rounded"
+                                                     alt="{{ $editingProduct->name }}">
+                                            </div>
+                                        @endif
+                                        <p class="text-muted small mb-0">Kategori: {{ $editingProduct->category->name }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Variant Selection -->
+                                    <div class="variant-selection">
+                                        <h5 class="text-light mb-3">Pilih Variant Baru</h5>
+
+                                        <!-- Size Selection -->
+                                        @if(count($this->availableSizes) > 0)
+                                        <div class="mb-3">
+                                            <label class="form-label text-light">Ukuran</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach($this->availableSizes as $size)
+                                                    <button type="button"
+                                                            class="btn variant-option {{ $selectedSize === $size ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                                            wire:click="$set('selectedSize', '{{ $size }}')"
+                                                            wire:loading.attr="disabled">
+                                                        {{ $size }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        <!-- Color Selection -->
+                                        @if(count($this->availableColors) > 0)
+                                        <div class="mb-3">
+                                            <label class="form-label text-light">Warna</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach($this->availableColors as $color)
+                                                    <button type="button"
+                                                            class="btn variant-option {{ $selectedColor === $color ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                                            wire:click="$set('selectedColor', '{{ $color }}')"
+                                                            wire:loading.attr="disabled">
+                                                        {{ $color }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        <!-- Selected Variant Info -->
+                                        @if($selectedVariant)
+                                        <div class="selected-variant-info bg-secondary bg-opacity-25 rounded p-3 mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-light mb-1">{{ $selectedVariant->name }}</h6>
+                                                    <p class="text-muted small mb-0">SKU: {{ $selectedVariant->sku }}</p>
+                                                </div>
+                                                <div class="text-end">
+                                                    @if($selectedVariant->has_discount)
+                                                        <small class="text-muted text-decoration-line-through">{{ $selectedVariant->formatted_price }}</small>
+                                                    @endif
+                                                    <div class="text-primary fw-bold">{{ $selectedVariant->formatted_final_price }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        <!-- Variant Selection Error -->
+                                        @if(session('error'))
+                                        <div class="alert alert-danger alert-sm">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" wire:click="cancelVariantChange">
+                                <i class="bi bi-x-circle me-1"></i>Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary" @disabled(!$selectedVariant)>
+                                <i class="bi bi-check-circle me-1"></i>Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

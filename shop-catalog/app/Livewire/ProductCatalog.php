@@ -75,7 +75,7 @@ class ProductCatalog extends Component
 
     public function render()
     {
-        $query = Product::with('category')->where('status', 'published');
+        $query = Product::with(['category', 'activeVariants', 'variantAttributes'])->where('status', 'published');
 
         if ($this->search && strlen(trim($this->search)) >= 2) {
             $searchTerm = trim($this->search);

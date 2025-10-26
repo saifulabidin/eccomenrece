@@ -8,6 +8,7 @@ use App\Models\Review;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -124,7 +125,6 @@ class ReviewResource extends Resource
                         5 => '5 Bintang',
                     ]),
                 Tables\Filters\Filter::make('created_at')
-                    ->label('Tanggal')
                     ->form([
                         Forms\Components\DatePicker::make('created_from')
                             ->label('Dari Tanggal'),

@@ -26,34 +26,71 @@
         <div class="tab-pane fade show active" id="detail" role="tabpanel" aria-labelledby="detail-tab" tabindex="0">
             <div class="row">
                 <div class="col-md-6">
-            @if($product->images)
-            <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-inner">
-                    @foreach($product->images as $index => $image)
-                    <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                        <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="{{ $product->name }}">
+            @if($product->has_variants && $selectedVariant && $selectedVariant->hasCustomImages())
+                <!-- Variant Images -->
+                <div id="variantCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @foreach($selectedVariant->all_image_urls as $index => $imageUrl)
+                        <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                            <img src="{{ $imageUrl }}" class="d-block w-100" alt="{{ $selectedVariant->name }}">
+                        </div>
+                        @endforeach
                     </div>
-                    @endforeach
+                    @if(count($selectedVariant->all_image_urls) > 1)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#variantCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#variantCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    @endif
                 </div>
-                @if(count($product->images) > 1)
-                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-                @endif
-            </div>
+            @elseif($product->images)
+                <!-- Default Product Images -->
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @foreach($product->images as $index => $image)
+                        <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                            <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="{{ $product->name }}">
+                        </div>
+                        @endforeach
+                    </div>
+                    @if(count($product->images) > 1)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    @endif
+                </div>
+            @else
+                <!-- Placeholder Image -->
+                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <span class="text-muted">No images available</span>
+                </div>
             @endif
         </div>
         <div class="col-md-6">
             <h1>{{ $product->name }}</h1>
             <p class="text-muted">Kategori: {{ $product->category->name }}</p>
-            <h3 class="text-success">Rp {{ number_format($product->price, 0, ',', '.') }}</h3>
-            @if($product->discount_price)
-            <p class="text-muted"><s>Rp {{ number_format($product->discount_price, 0, ',', '.') }}</s></p>
+            @if($product->has_variants)
+                @if($selectedVariant)
+                    <h3 class="text-success">Rp {{ number_format($this->current_price, 0, ',', '.') }}</h3>
+                    <p class="text-muted small">{{ $selectedVariant->name }}</p>
+                @else
+                    <h3 class="text-success">{{ $this->priceRange }}</h3>
+                    <p class="text-muted small">Harga tergantung variant yang dipilih</p>
+                @endif
+            @else
+                <h3 class="text-success">Rp {{ number_format($product->price, 0, ',', '.') }}</h3>
+                @if($product->discount_price)
+                <p class="text-muted"><s>Rp {{ number_format($product->discount_price, 0, ',', '.') }}</s></p>
+                @endif
             @endif
             @if($product->total_reviews > 0)
                 <div class="product-rating-detail mb-3">
@@ -83,6 +120,73 @@
             </button>
         @endif
     </div>
+
+            <!-- Variant Selection -->
+            @if($product->has_variants)
+            <div class="variant-selection mb-4">
+                <h5 class="text-light mb-3">Pilih Variant</h5>
+
+                <!-- Size Selection -->
+                @if(count($this->availableSizes) > 0)
+                <div class="mb-3">
+                    <label class="form-label text-light">Ukuran</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($this->availableSizes as $size)
+                            <button type="button"
+                                    class="btn variant-option {{ $selectedSize === $size ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    wire:click="$set('selectedSize', '{{ $size }}')"
+                                    wire:loading.attr="disabled">
+                                {{ $size }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Color Selection -->
+                @if(count($this->availableColors) > 0)
+                <div class="mb-3">
+                    <label class="form-label text-light">Warna</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($this->availableColors as $color)
+                            <button type="button"
+                                    class="btn variant-option {{ $selectedColor === $color ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                    wire:click="$set('selectedColor', '{{ $color }}')"
+                                    wire:loading.attr="disabled">
+                                {{ $color }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Selected Variant Info -->
+                @if($selectedVariant)
+                <div class="selected-variant-info bg-secondary bg-opacity-25 rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-light mb-1">{{ $selectedVariant->name }}</h6>
+                            <p class="text-muted small mb-0">SKU: {{ $selectedVariant->sku }}</p>
+                        </div>
+                        <div class="text-end">
+                            @if($selectedVariant->has_discount)
+                                <small class="text-muted text-decoration-line-through">{{ $selectedVariant->formatted_price }}</small>
+                            @endif
+                            <div class="text-primary fw-bold">{{ $selectedVariant->formatted_final_price }}</div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Variant Selection Error -->
+                @if(session('error'))
+                <div class="alert alert-danger alert-sm">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                </div>
+                @endif
+            </div>
+            @endif
+
             <div class="mb-4">
                 <label class="form-label text-light">Jumlah</label>
                 <div class="d-flex align-items-center product-detail-quantity">
@@ -96,16 +200,16 @@
                                class="form-control text-center bg-dark border-secondary text-light"
                                wire:model.live="quantity"
                                min="1"
-                               max="{{ $product->stock ?? 999 }}"
+                               max="{{ $this->current_stock }}"
                                value="{{ $quantity }}">
                         <button class="btn btn-outline-secondary"
                                 wire:click="incrementQuantity"
-                                @disabled($quantity >= ($product->stock ?? 999))>
+                                @disabled($quantity >= $this->current_stock)>
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
                     <span class="text-muted small ms-3">
-                        Stok: {{ $product->stock ?? 'Tersedia' }} pcs
+                        Stok: {{ $this->current_stock == 999 ? 'Tersedia' : $this->current_stock }} pcs
                     </span>
                 </div>
             </div>
@@ -207,7 +311,13 @@
                                 <h6 class="text-light mb-2">Ringkasan Pesanan:</h6>
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="text-muted small">Produk:</span>
-                                    <span class="text-light small">{{ $product->name }}</span>
+                                    <span class="text-light small">
+                                        @if($product->has_variants && $selectedVariant)
+                                            {{ $selectedVariant->name }}
+                                        @else
+                                            {{ $product->name }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1">
                                     <span class="text-muted small">Quantity:</span>
@@ -215,7 +325,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">Total Bayar:</span>
-                                    <span class="text-primary fw-bold small">Rp {{ number_format($product->price * $quantity, 0, ',', '.') }}</span>
+                                    <span class="text-primary fw-bold small">Rp {{ number_format($this->current_price * $quantity, 0, ',', '.') }}</span>
                                 </div>
                             </div>
                         </div>

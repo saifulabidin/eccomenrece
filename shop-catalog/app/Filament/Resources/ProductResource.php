@@ -8,6 +8,7 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,72 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    
+    public static function afterCreate(Product $record, array $data): void
+    {
+        // Auto-generate base SKU for variant products
+        if ($data['has_variants'] && empty($record->base_sku)) {
+            $record->base_sku = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($record->name));
+            $record->save();
+        }
+
+        if ($data['has_variants'] && isset($data['variant_attributes'])) {
+            foreach ($data['variant_attributes'] as $attribute) {
+                $record->variantAttributes()->create([
+                    'attribute_type' => $attribute['attribute_type'],
+                    'attribute_name' => $attribute['attribute_name'],
+                    'attribute_values' => $attribute['attribute_values'],
+                    'is_active' => true,
+                ]);
+            }
+
+            // Auto-generate variant combinations
+            $record->generateAllVariantCombinations();
+        }
+    }
+
+    public static function afterUpdate(Product $record, array $data): void
+    {
+        // Auto-generate base SKU for variant products
+        if ($data['has_variants'] && empty($record->base_sku)) {
+            $record->base_sku = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($record->name));
+            $record->save();
+        }
+
+        if ($data['has_variants'] && isset($data['variant_attributes'])) {
+            // Only update if attributes actually changed
+            $existingAttributes = $record->variantAttributes()->get()->keyBy('attribute_type');
+
+            // Update or create attributes
+            foreach ($data['variant_attributes'] as $attribute) {
+                if (isset($existingAttributes[$attribute['attribute_type']])) {
+                    // Update existing attribute
+                    $existingAttr = $existingAttributes[$attribute['attribute_type']];
+                    $existingAttr->update([
+                        'attribute_name' => $attribute['attribute_name'],
+                        'attribute_values' => $attribute['attribute_values'],
+                        'is_active' => true,
+                    ]);
+                } else {
+                    // Create new attribute
+                    $record->variantAttributes()->create([
+                        'attribute_type' => $attribute['attribute_type'],
+                        'attribute_name' => $attribute['attribute_name'],
+                        'attribute_values' => $attribute['attribute_values'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
+            // Only regenerate variants if attributes changed
+            $record->generateAllVariantCombinations();
+        } elseif (!$data['has_variants']) {
+            // If variants disabled, clean up
+            $record->variantAttributes()->delete();
+            $record->variants()->delete();
+        }
+    }
 
     public static function form(Form $form): Form
     {
@@ -41,22 +108,106 @@ class ProductResource extends Resource
                 Forms\Components\Select::make('category_id')
                     ->relationship('category', 'name')
                     ->required(),
-                Forms\Components\TextInput::make('price')
-                    ->required()
-                    ->numeric()
-                    ->prefix('Rp'),
-                Forms\Components\TextInput::make('discount_price')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->nullable(),
-                Forms\Components\TextInput::make('stock')
-                    ->numeric()
-                    ->nullable(),
                 Forms\Components\FileUpload::make('images')
                     ->multiple()
                     ->image()
                     ->directory('products')
+                    ->acceptedFileTypes([
+                        'image/jpeg',
+                        'image/jpg',
+                        'image/png',
+                        'image/webp',
+                        'image/gif',
+                        'image/svg+xml'
+                    ])
                     ->nullable(),
+                Forms\Components\Toggle::make('has_variants')
+                    ->label('Enable Variants')
+                    ->default(false)
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        // When variants are disabled, clean up variant-related fields
+                        if (!$state) {
+                            $set('variant_attributes', []);
+                        }
+                        // When variants are enabled, set default price if not set
+                        else {
+                            $set('price', null);
+                            $set('discount_price', null);
+                            $set('stock', null);
+                        }
+                    }),
+
+                Forms\Components\Hidden::make('base_sku')
+                    ->visible(fn (Forms\Get $get) => $get('has_variants'))
+                    ->default(function (Forms\Get $get) {
+                        $name = $get('name');
+                        return $name ? \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($name)) : null;
+                    }),
+
+                Forms\Components\Fieldset::make('Variant Attributes')
+                    ->visible(fn (Forms\Get $get) => $get('has_variants'))
+                    ->schema([
+                        Forms\Components\Repeater::make('variant_attributes')
+                            ->relationship('variantAttributes')
+                            ->schema([
+                                Forms\Components\Select::make('attribute_type')
+                                    ->options([
+                                        'size' => 'Size',
+                                        'color' => 'Color',
+                                    ])
+                                    ->required()
+                                    ->label('Attribute Type'),
+
+                                Forms\Components\TextInput::make('attribute_name')
+                                    ->required()
+                                    ->label('Attribute Name (e.g., "Size Options", "Color Choices")')
+                                    ->minLength(2)
+                                    ->maxLength(50),
+
+                                Forms\Components\TagsInput::make('attribute_values')
+                                    ->required()
+                                    ->separator(',')
+                                    ->label('Attribute Values')
+                                    ->helperText('Enter values separated by commas'),
+                            ])
+                            ->columns(3)
+                            ->addActionLabel('Add Another Attribute')
+                            ->label('Variant Attributes')
+                            ->reorderable(false)
+                            ->itemLabel(fn (array $state): ?string => $state['attribute_name'] ?? null)
+                            ->helperText('Add at least Size and Color attributes to create product variants.')
+                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                                $data['is_active'] = true;
+                                return $data;
+                            })
+                            ->mutateRelationshipDataBeforeSaveUsing(function (array $data): array {
+                                $data['is_active'] = true;
+                                return $data;
+                            })
+                    ]),
+
+                Forms\Components\Section::make('Pricing & Stock (for non-variant products)')
+                    ->visible(fn (Forms\Get $get) => !$get('has_variants'))
+                    ->schema([
+                        Forms\Components\TextInput::make('price')
+                            ->required(fn (Forms\Get $get) => !$get('has_variants'))
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->label('Price'),
+
+                        Forms\Components\TextInput::make('discount_price')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->nullable()
+                            ->label('Discount Price'),
+
+                        Forms\Components\TextInput::make('stock')
+                            ->numeric()
+                            ->nullable()
+                            ->label('Stock'),
+                    ]),
+
                 Forms\Components\Select::make('status')
                     ->options([
                         'draft' => 'Draft',
@@ -76,14 +227,47 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('category.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('IDR')
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->has_variants) {
+                            $variants = $record->variants()->active()->get();
+                            if ($variants->count() > 0) {
+                                $minPrice = $variants->min('final_price');
+                                $maxPrice = $variants->max('final_price');
+
+                                if ($minPrice > 0 && $maxPrice > 0) {
+                                    return $minPrice == $maxPrice
+                                        ? 'Rp ' . number_format($minPrice, 0, ',', '.')
+                                        : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - Rp ' . number_format($maxPrice, 0, ',', '.');
+                                }
+                            }
+                            return 'Rp 0';
+                        }
+                        $price = $record->price;
+                        return $price && $price > 0 ? 'Rp ' . number_format($price, 0, ',', '.') : 'Rp 0';
+                    }),
                 Tables\Columns\TextColumn::make('discount_price')
-                    ->money('IDR')
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->has_variants) {
+                            return '-';
+                        }
+                        $discountPrice = $record->discount_price;
+                        return $discountPrice && $discountPrice > 0 ? 'Rp ' . number_format($discountPrice, 0, ',', '.') : '-';
+                    }),
                 Tables\Columns\TextColumn::make('stock')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->has_variants) {
+                            $totalStock = $record->variants()->sum('stock');
+                            return $totalStock;
+                        }
+                        return $record->stock;
+                    }),
+                Tables\Columns\IconColumn::make('has_variants')
+                    ->boolean()
+                    ->label('Has Variants'),
+
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -105,6 +289,30 @@ class ProductResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('publish')
+                        ->label('Publikasikan yang Dipilih')
+                        ->icon('heroicon-o-globe-alt')
+                        ->color('success')
+                        ->action(fn ($records) => $records->each->update(['status' => 'published']))
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->after(fn () => \Filament\Notifications\Notification::make()
+                            ->title('Produk berhasil dipublikasikan')
+                            ->success()
+                            ->send()),
+
+                    Tables\Actions\BulkAction::make('draft')
+                        ->label('Jadikan Draft yang Dipilih')
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->action(fn ($records) => $records->each->update(['status' => 'draft']))
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->after(fn () => \Filament\Notifications\Notification::make()
+                            ->title('Produk berhasil dijadikan draft')
+                            ->success()
+                            ->send()),
+
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
@@ -113,8 +321,38 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\VariantsRelationManager::class,
         ];
+    }
+
+    public static function validateVariantAttributes(array $data): array
+    {
+        $errors = [];
+
+        if (isset($data['has_variants']) && $data['has_variants'] && isset($data['variant_attributes'])) {
+            $variantAttributes = $data['variant_attributes'];
+
+            // Check if at least one variant attribute is provided
+            if (empty($variantAttributes) || (is_array($variantAttributes) && count($variantAttributes) === 0)) {
+                $errors['variant_attributes'] = 'At least one variant attribute is required when variants are enabled.';
+            }
+
+            // Check for duplicate attribute types
+            if (is_array($variantAttributes) && count($variantAttributes) > 1) {
+                $attributeTypes = [];
+                foreach ($variantAttributes as $index => $attribute) {
+                    if (isset($attribute['attribute_type'])) {
+                        if (in_array($attribute['attribute_type'], $attributeTypes)) {
+                            $errors['variant_attributes.' . $index . '.attribute_type'] = 'Duplicate attribute type: ' . $attribute['attribute_type'] . '. Each attribute type must be unique.';
+                        } else {
+                            $attributeTypes[] = $attribute['attribute_type'];
+                        }
+                    }
+                }
+            }
+        }
+
+        return $errors;
     }
 
     public static function getPages(): array
