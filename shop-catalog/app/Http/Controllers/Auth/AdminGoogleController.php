@@ -33,9 +33,9 @@ class AdminGoogleController extends Controller
                 ->user();
 
             // Check if user's email is authorized for admin access
-            // Check both database and .env
+            // Check both database and config
             $isAdminInDb = AdminUser::isAuthorizedEmail($googleUser->getEmail());
-            $adminEmails = explode(',', env('ADMIN_EMAILS', ''));
+            $adminEmails = config('auth.admin_emails', []);
             $isAdminInEnv = in_array($googleUser->getEmail(), $adminEmails);
             
             if (!$isAdminInDb && !$isAdminInEnv) {
