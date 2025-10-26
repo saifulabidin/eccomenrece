@@ -125,7 +125,7 @@ class ProductResource extends Resource
                     ])
                     ->nullable(),
                 Forms\Components\Toggle::make('has_variants')
-                    ->label('Enable Variants')
+                    ->label('Aktifkan Varian')
                     ->default(false)
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
@@ -148,7 +148,7 @@ class ProductResource extends Resource
                         return $name ? \Illuminate\Support\Str::upper(\Illuminate\Support\Str::slug($name)) : null;
                     }),
 
-                Forms\Components\Fieldset::make('Variant Attributes')
+                Forms\Components\Fieldset::make('Atribut Varian')
                     ->visible(fn (Forms\Get $get) => $get('has_variants'))
                     ->schema([
                         Forms\Components\Repeater::make('variant_attributes')
@@ -156,30 +156,30 @@ class ProductResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('attribute_type')
                                     ->options([
-                                        'size' => 'Size',
-                                        'color' => 'Color',
+                                        'size' => 'Ukuran',
+                                        'color' => 'Warna',
                                     ])
                                     ->required()
-                                    ->label('Attribute Type'),
+                                    ->label('Tipe Atribut'),
 
                                 Forms\Components\TextInput::make('attribute_name')
                                     ->required()
-                                    ->label('Attribute Name (e.g., "Size Options", "Color Choices")')
+                                    ->label('Nama Atribut (contoh: "Pilihan Ukuran", "Pilihan Warna")')
                                     ->minLength(2)
                                     ->maxLength(50),
 
                                 Forms\Components\TagsInput::make('attribute_values')
                                     ->required()
                                     ->separator(',')
-                                    ->label('Attribute Values')
-                                    ->helperText('Enter values separated by commas'),
+                                    ->label('Nilai Atribut')
+                                    ->helperText('Masukkan nilai dipisahkan dengan koma'),
                             ])
                             ->columns(3)
-                            ->addActionLabel('Add Another Attribute')
-                            ->label('Variant Attributes')
+                            ->addActionLabel('Tambah Atribut Lain')
+                            ->label('Atribut Varian')
                             ->reorderable(false)
                             ->itemLabel(fn (array $state): ?string => $state['attribute_name'] ?? null)
-                            ->helperText('Add at least Size and Color attributes to create product variants.')
+                            ->helperText('Tambahkan minimal atribut Ukuran dan Warna untuk membuat varian produk.')
                             ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
                                 $data['is_active'] = true;
                                 return $data;
@@ -190,25 +190,25 @@ class ProductResource extends Resource
                             })
                     ]),
 
-                Forms\Components\Section::make('Pricing & Stock (for non-variant products)')
+                Forms\Components\Section::make('Harga & Stok (untuk produk tanpa varian)')
                     ->visible(fn (Forms\Get $get) => !$get('has_variants'))
                     ->schema([
                         Forms\Components\TextInput::make('price')
                             ->required(fn (Forms\Get $get) => !$get('has_variants'))
                             ->numeric()
                             ->prefix('Rp')
-                            ->label('Price'),
+                            ->label('Harga'),
 
                         Forms\Components\TextInput::make('discount_price')
                             ->numeric()
                             ->prefix('Rp')
                             ->nullable()
-                            ->label('Discount Price'),
+                            ->label('Harga Diskon'),
 
                         Forms\Components\TextInput::make('stock')
                             ->numeric()
                             ->nullable()
-                            ->label('Stock'),
+                            ->label('Stok'),
                     ]),
 
                 Forms\Components\Select::make('status')
@@ -269,7 +269,7 @@ class ProductResource extends Resource
                     }),
                 Tables\Columns\IconColumn::make('has_variants')
                     ->boolean()
-                    ->label('Has Variants'),
+                    ->label('Punya Varian'),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
