@@ -60,8 +60,7 @@ class ListAdminUsers extends ListRecords
                     } else {
                         Notification::make()
                             ->info()
-                            ->title('Already synced')
-                            ->body('All .env admin emails are already in the database')
+                            ->title('Sudah disinkronkan')
                             ->send();
                     }
                 }),
