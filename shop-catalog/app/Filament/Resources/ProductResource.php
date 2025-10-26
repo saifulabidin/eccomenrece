@@ -94,6 +94,7 @@ class ProductResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label('Nama')
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
@@ -103,15 +104,19 @@ class ProductResource extends Resource
                         }
                     }),
                 Forms\Components\TextInput::make('slug')
+                    ->label('Slug')
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 Forms\Components\RichEditor::make('description')
+                    ->label('Deskripsi')
                     ->nullable(),
                 Forms\Components\Select::make('category_id')
+                    ->label('Kategori')
                     ->relationship('category', 'name')
                     ->required(),
                 Forms\Components\FileUpload::make('images')
+                    ->label('Gambar')
                     ->multiple()
                     ->image()
                     ->directory('products')
@@ -212,9 +217,10 @@ class ProductResource extends Resource
                     ]),
 
                 Forms\Components\Select::make('status')
+                    ->label('Status')
                     ->options([
                         'draft' => 'Draft',
-                        'published' => 'Published',
+                        'published' => 'Dipublikasikan',
                     ])
                     ->default('draft')
                     ->required(),
@@ -226,10 +232,13 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
+                    ->label('Kategori')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
+                    ->label('Harga')
                     ->sortable()
                     ->formatStateUsing(function ($state, $record) {
                         if ($record->has_variants) {
@@ -250,6 +259,7 @@ class ProductResource extends Resource
                         return $price && $price > 0 ? 'Rp ' . number_format($price, 0, ',', '.') : 'Rp 0';
                     }),
                 Tables\Columns\TextColumn::make('discount_price')
+                    ->label('Harga Diskon')
                     ->sortable()
                     ->formatStateUsing(function ($state, $record) {
                         if ($record->has_variants) {
@@ -259,6 +269,7 @@ class ProductResource extends Resource
                         return $discountPrice && $discountPrice > 0 ? 'Rp ' . number_format($discountPrice, 0, ',', '.') : '-';
                     }),
                 Tables\Columns\TextColumn::make('stock')
+                    ->label('Stok')
                     ->sortable()
                     ->formatStateUsing(function ($state, $record) {
                         if ($record->has_variants) {
@@ -272,19 +283,23 @@ class ProductResource extends Resource
                     ->label('Punya Varian'),
 
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
+                    ->label('Kategori')
                     ->relationship('category', 'name'),
                 Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
                     ->options([
                         'draft' => 'Draft',
-                        'published' => 'Published',
+                        'published' => 'Dipublikasikan',
                     ]),
             ])
             ->actions([
