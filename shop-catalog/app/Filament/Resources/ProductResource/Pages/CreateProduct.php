@@ -21,42 +21,24 @@ class CreateProduct extends CreateRecord
         return $data;
     }
 
-    protected function handleRecordCreation(array $data): Model
+    protected function afterCreate(): void
     {
-        $record = parent::handleRecordCreation($data);
+        $record = $this->record;
 
-        // Auto-generate variants if enabled and attributes are provided
-        if (isset($data['has_variants']) && $data['has_variants'] && isset($data['variant_attributes']) && !empty($data['variant_attributes'])) {
-
-            // Create variant attributes first
-            foreach ($data['variant_attributes'] as $attribute) {
-                $record->variantAttributes()->create([
-                    'attribute_type' => $attribute['attribute_type'],
-                    'attribute_name' => $attribute['attribute_name'],
-                    'attribute_values' => $attribute['attribute_values'],
-                    'is_active' => true,
-                ]);
-            }
-
-            // Reload relationships to get the newly created attributes
+        // Auto-generate variants if enabled
+        if ($record->has_variants) {
+            // Wait a bit for relationships to be saved
+            sleep(1);
+            
+            // Reload relationships
             $record->load(['variantAttributes']);
 
-            // Now generate all variant combinations
+            // Generate variant combinations
             try {
                 $variants = $record->generateAllVariantCombinations();
+                
             } catch (\Exception $e) {
-                // Log error for debugging
-                \Log::error('Failed to generate variants', [
-                    'product_id' => $record->id,
-                    'error' => $e->getMessage(),
-                    'attributes' => $data['variant_attributes']
-                ]);
-
-                // Re-throw the exception so user knows something went wrong
-                throw $e;
             }
         }
-
-        return $record;
     }
 }

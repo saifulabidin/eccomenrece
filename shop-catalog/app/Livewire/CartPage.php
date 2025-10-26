@@ -30,14 +30,6 @@ class CartPage extends Component
 
     protected $listeners = ['add-to-cart' => 'addToCart'];
 
-    // Debug: Add render hook to check component state
-    public function dehydrate()
-    {
-        if ($this->showVariantModal) {
-            \Log::info('Component dehydrate - showVariantModal: true, editingProduct: ' . ($this->editingProduct ? $this->editingProduct->name : 'null'));
-        }
-    }
-
     protected $rules = [
         'customerName' => 'required|string|min:3|max:50',
         'customerAddress' => 'required|string|min:10|max:200',
@@ -204,27 +196,27 @@ class CartPage extends Component
     public function editVariant($cartKey)
     {
         // Debug: Log the method call
-        \Log::info('editVariant called with cartKey: ' . $cartKey);
+        info('editVariant called with cartKey: ' . $cartKey);
 
         $cart = session('cart', []);
         if (!isset($cart[$cartKey])) {
-            \Log::warning('Cart item not found for key: ' . $cartKey);
+            warning('Cart item not found for key: ' . $cartKey);
             return;
         }
 
         $cartItem = $cart[$cartKey];
         if (!$cartItem['variant_id']) {
-            \Log::info('Cart item has no variant_id, skipping');
+            info('Cart item has no variant_id, skipping');
             return; // Only for variant products
         }
 
         $product = Product::find($cartItem['id']);
         if (!$product) {
-            \Log::warning('Product not found for id: ' . $cartItem['id']);
+            warning('Product not found for id: ' . $cartItem['id']);
             return;
         }
 
-        \Log::info('Found product: ' . $product->name);
+        info('Found product: ' . $product->name);
 
         // Load the product with variant relationships
         $product->load(['variants.combinations.variantAttribute', 'variantAttributes']);
@@ -232,7 +224,7 @@ class CartPage extends Component
         // Set editing item and product
         $this->editingCartItem = $cartKey;
         $this->editingProduct = $product;
-        \Log::info('Set editingCartItem: ' . $cartKey . ', editingProduct: ' . $product->name);
+        info('Set editingCartItem: ' . $cartKey . ', editingProduct: ' . $product->name);
 
         // Reset selection
         $this->selectedSize = null;
@@ -243,24 +235,24 @@ class CartPage extends Component
         $currentVariant = $product->variants()->find($cartItem['variant_id']);
         if ($currentVariant) {
             $this->selectedVariant = $currentVariant;
-            \Log::info('Found current variant: ' . $currentVariant->name);
+            info('Found current variant: ' . $currentVariant->name);
 
             // Set size and color based on current variant
             foreach ($currentVariant->combinations as $combination) {
                 if ($combination->variantAttribute->attribute_type === 'size') {
                     $this->selectedSize = $combination->attribute_value;
-                    \Log::info('Set selectedSize: ' . $combination->attribute_value);
+                    info('Set selectedSize: ' . $combination->attribute_value);
                 } elseif ($combination->variantAttribute->attribute_type === 'color') {
                     $this->selectedColor = $combination->attribute_value;
-                    \Log::info('Set selectedColor: ' . $combination->attribute_value);
+                    info('Set selectedColor: ' . $combination->attribute_value);
                 }
             }
         } else {
-            \Log::warning('Current variant not found: ' . $cartItem['variant_id']);
+            warning('Current variant not found: ' . $cartItem['variant_id']);
         }
 
         $this->showVariantModal = true;
-        \Log::info('Set showVariantModal to true');
+        info('Set showVariantModal to true');
     }
 
     public function updateSelectedVariant()

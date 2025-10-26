@@ -107,7 +107,6 @@ class AdminGoogleController extends Controller
             return redirect('/admin');
 
         } catch (\Exception $e) {
-            \Log::error('Admin Google authentication error: ' . $e->getMessage());
             return redirect()->route('admin.login')->with('error', 'Tanya kan pada developer yang tamvan dan pemberani !');
         }
     }

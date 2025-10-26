@@ -173,15 +173,18 @@ class Product extends Model
 
     public function generateAllVariantCombinations()
     {
+        
         $sizeAttribute = $this->variantAttributes()->byType('size')->active()->first();
         $colorAttribute = $this->variantAttributes()->byType('color')->active()->first();
 
+        
         $sizes = [null];
         $colors = [null];
 
         // Extract size values with better error handling
         if ($sizeAttribute) {
             $sizeValues = $sizeAttribute->attribute_values;
+            
             if (is_array($sizeValues) && !empty($sizeValues)) {
                 $sizes = $sizeValues;
             } elseif (is_string($sizeValues)) {
@@ -192,11 +195,12 @@ class Product extends Model
                     $sizes = array_map('trim', explode(',', $sizeValues));
                 }
             }
-        }
+                    }
 
         // Extract color values with better error handling
         if ($colorAttribute) {
             $colorValues = $colorAttribute->attribute_values;
+            
             if (is_array($colorValues) && !empty($colorValues)) {
                 $colors = $colorValues;
             } elseif (is_string($colorValues)) {
@@ -207,9 +211,10 @@ class Product extends Model
                     $colors = array_map('trim', explode(',', $colorValues));
                 }
             }
-        }
+                    }
 
         $variants = collect();
+        $variantCount = 0;
 
         foreach ($sizes as $size) {
             foreach ($colors as $color) {
@@ -218,8 +223,13 @@ class Product extends Model
                     if ($size) $attributes['size'] = $size;
                     if ($color) $attributes['color'] = $color;
 
-                    $variant = $this->createVariantCombination($attributes);
-                    $variants->push($variant);
+                    try {
+                        $variant = $this->createVariantCombination($attributes);
+                        $variants->push($variant);
+                        $variantCount++;
+                    } catch (\Exception $e) {
+                        // Silent fail for now - can add error handling later if needed
+                    }
                 }
             }
         }

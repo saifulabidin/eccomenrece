@@ -13,9 +13,31 @@ class EditProduct extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        $actions = [Actions\DeleteAction::make()];
+
+        // Only show "Generate Variants" action if product has variants enabled but no variants yet
+        if ($this->record->has_variants && $this->record->variants()->count() === 0) {
+            $actions[] = Actions\Action::make('generate_variants')
+                ->label('Generate Variants')
+                ->icon('heroicon-o-cog-6-tooth')
+                ->action(function () {
+                    try {
+                        $this->record->generateAllVariantCombinations();
+                        \Filament\Notifications\Notification::make()
+                            ->title('Variants berhasil dibuat')
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Gagal membuat variants')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                });
+        }
+
+        return $actions;
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -39,10 +61,7 @@ class EditProduct extends EditRecord
             try {
                 $record->generateAllVariantCombinations();
             } catch (\Exception $e) {
-                \Log::error('Failed to generate variants on update', [
-                    'product_id' => $record->id,
-                    'error' => $e->getMessage(),
-                ]);
+
             }
         } elseif (!$data['has_variants']) {
             // If variants disabled, clean up
