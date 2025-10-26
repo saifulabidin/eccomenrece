@@ -49,8 +49,12 @@
                         <div class="row">
                             <div class="col-auto">
                                 @if($review->user_avatar)
-                                    <img src="{{ $review->user_avatar }}" alt="{{ $review->display_name }}"
-                                         class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{{ $review->user_avatar }}" 
+                                         alt="{{ $review->display_name }}"
+                                         class="rounded-circle" 
+                                         style="width: 50px; height: 50px; object-fit: cover;"
+                                         loading="lazy"
+                                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22 viewBox=%220 0 50 50%22%3E%3Ccircle cx=%2225%22 cy=%2225%22 r=%2225%22 fill=%22%236c757d%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2220%22%3E{{ strtoupper(substr($review->display_name, 0, 1)) }}%3C/text%3E%3C/svg%3E';">
                                 @else
                                     <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
                                          style="width: 50px; height: 50px;">
@@ -159,7 +163,9 @@
                                 <img src="{{ $googleUser['avatar'] }}" 
                                      alt="{{ $googleUser['name'] }}" 
                                      class="rounded-circle shadow-sm" 
-                                     style="width: 48px; height: 48px; object-fit: cover;">
+                                     style="width: 48px; height: 48px; object-fit: cover;"
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22%3E%3Ccircle cx=%2224%22 cy=%2224%22 r=%2224%22 fill=%22%236c757d%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2220%22%3E{{ strtoupper(substr($googleUser['name'], 0, 1)) }}%3C/text%3E%3C/svg%3E';">
                                 <div class="flex-grow-1" style="min-width: 0;">
                                     <div class="text-light fw-semibold text-truncate">{{ $googleUser['name'] }}</div>
                                     <small class="text-muted d-block text-truncate">{{ $googleUser['email'] }}</small>

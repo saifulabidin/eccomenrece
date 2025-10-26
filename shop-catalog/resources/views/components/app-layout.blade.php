@@ -3,7 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $storeName }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <base href="{{ url('/') }}/">
+    
+    <!-- Title -->
+    <title>{{ $metaTitle ?? $storeName }}</title>
+    
+    <!-- Standard Meta Tags -->
+    <meta name="description" content="{{ $metaDescription ?? 'Toko Online Terpercaya' }}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{{ $ogType ?? 'website' }}">
+    <meta property="og:url" content="{{ $ogUrl ?? url()->current() }}">
+    <meta property="og:title" content="{{ $ogTitle ?? $metaTitle ?? $storeName }}">
+    <meta property="og:description" content="{{ $ogDescription ?? $metaDescription ?? 'Toko Online Terpercaya' }}">
+    <meta property="og:image" content="{{ $ogImage ?? asset('storage/' . $storeLogo) }}">
+    <meta property="og:site_name" content="{{ $storeName }}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ $twitterUrl ?? url()->current() }}">
+    <meta name="twitter:title" content="{{ $twitterTitle ?? $ogTitle ?? $metaTitle ?? $storeName }}">
+    <meta name="twitter:description" content="{{ $twitterDescription ?? $ogDescription ?? $metaDescription ?? 'Toko Online Terpercaya' }}">
+    <meta name="twitter:image" content="{{ $twitterImage ?? $ogImage ?? asset('storage/' . $storeLogo) }}">
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

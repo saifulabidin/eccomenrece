@@ -68,13 +68,6 @@ class ReviewResource extends Resource
                             ->rows(6)
                             ->disabled(),
                     ]),
-
-                Forms\Components\Section::make('Status Approval')
-                    ->schema([
-                        Forms\Components\Toggle::make('approved')
-                            ->label('Setujui Ulasan')
-                            ->required(),
-                    ]),
             ]);
     }
 
@@ -145,7 +138,37 @@ class ReviewResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('Lihat'),
+                    ->label('Lihat')
+                    ->modalHeading('Detail Ulasan')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->extraModalFooterActions(fn ($record): array => [
+                        Tables\Actions\Action::make('approve_modal')
+                            ->label('Setujui Ulasan')
+                            ->icon('heroicon-o-check')
+                            ->color('success')
+                            ->visible(fn () => !$record->approved)
+                            ->requiresConfirmation()
+                            ->action(function () use ($record) {
+                                $record->update(['approved' => true]);
+                            })
+                            ->after(fn () => redirect()->route('filament.admin.resources.reviews.index'))
+                            ->successNotificationTitle('Ulasan berhasil disetujui'),
+                        
+                        Tables\Actions\Action::make('reject_modal')
+                            ->label('Tolak & Hapus')
+                            ->icon('heroicon-o-x-mark')
+                            ->color('danger')
+                            ->visible(fn () => !$record->approved)
+                            ->requiresConfirmation()
+                            ->modalHeading('Tolak Ulasan')
+                            ->modalDescription('Apakah Anda yakin ingin menolak dan menghapus ulasan ini?')
+                            ->action(function () use ($record) {
+                                $record->delete();
+                            })
+                            ->after(fn () => redirect()->route('filament.admin.resources.reviews.index'))
+                            ->successNotificationTitle('Ulasan berhasil ditolak dan dihapus'),
+                    ]),
                     
                 Tables\Actions\Action::make('approve')
                     ->label('Setujui')
@@ -153,7 +176,7 @@ class ReviewResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => !$record->approved)
                     ->action(fn ($record) => $record->update(['approved' => true]))
-                    ->after(fn () => Session::flash('success', 'Ulasan berhasil disetujui')),
+                    ->successNotificationTitle('Ulasan berhasil disetujui'),
 
                 Tables\Actions\Action::make('reject')
                     ->label('Tolak')
@@ -162,7 +185,7 @@ class ReviewResource extends Resource
                     ->visible(fn ($record) => !$record->approved)
                     ->action(fn ($record) => $record->delete())
                     ->requiresConfirmation()
-                    ->after(fn () => Session::flash('success', 'Ulasan berhasil ditolak dan dihapus')),
+                    ->successNotificationTitle('Ulasan berhasil ditolak dan dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -171,7 +194,7 @@ class ReviewResource extends Resource
                         ->icon('heroicon-o-check')
                         ->color('success')
                         ->action(fn ($records) => $records->each->update(['approved' => true]))
-                        ->after(fn () => Session::flash('success', 'Ulasan terpilih berhasil disetujui')),
+                        ->successNotificationTitle('Ulasan terpilih berhasil disetujui'),
 
                     Tables\Actions\BulkAction::make('reject')
                         ->label('Tolak yang Dipilih')
@@ -180,7 +203,7 @@ class ReviewResource extends Resource
                         ->action(fn ($records) => $records->each->delete())
                         ->requiresConfirmation()
                         ->deselectRecordsAfterCompletion()
-                        ->after(fn () => Session::flash('success', 'Ulasan terpilih berhasil ditolak dan dihapus')),
+                        ->successNotificationTitle('Ulasan terpilih berhasil ditolak dan dihapus'),
 
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),

@@ -11,7 +11,8 @@ Route::get('/katalog', function () {
 })->name('catalog');
 
 Route::get('/produk/{slug}', function ($slug) {
-    return view('product-detail', compact('slug'));
+    $product = \App\Models\Product::where('slug', $slug)->firstOrFail();
+    return view('product-detail', compact('slug', 'product'));
 })->name('product.detail');
 
 Route::get('/keranjang', function () {

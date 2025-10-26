@@ -41,10 +41,10 @@ class GoogleController extends Controller
             $redirectTo = $request->session()->get('intended_url', route('home'));
             $request->session()->forget('intended_url');
 
-            return redirect($redirectTo)->with('google_auth_success', 'Successfully connected with Google!');
+            return redirect($redirectTo)->with('google_auth_success', 'Berhasil terhubung dengan Akun Google!');
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('google_auth_error', 'Google authentication failed. Please try again.');
+            return redirect()->back()->with('google_auth_error', 'Otentikasi Google gagal. Silakan coba lagi.');
         }
     }
 
@@ -54,7 +54,7 @@ class GoogleController extends Controller
     public function logout(Request $request)
     {
         $request->session()->forget('google_user');
-        return redirect()->back()->with('google_logout_success', 'Successfully disconnected from Google.');
+        return redirect()->back()->with('google_logout_success', 'Berhasil terputus dari  Akun Google.');
     }
 
     /**
