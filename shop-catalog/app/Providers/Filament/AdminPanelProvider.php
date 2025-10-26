@@ -60,7 +60,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                'admin.google.auth',
+                \Filament\Http\Middleware\Authenticate::class,
             ])
             ->plugins([
                 // Add any required plugins here

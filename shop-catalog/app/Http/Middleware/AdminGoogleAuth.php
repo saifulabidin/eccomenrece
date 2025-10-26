@@ -18,35 +18,20 @@ class AdminGoogleAuth
      */
     public function handle(Request $request, Closure $next)
     {
-        // Check if user is authenticated as admin
-        if (!AdminGoogleController::isAuthenticatedAdmin($request)) {
-            // Store the intended URL
+        // Check if user is authenticated via Laravel Auth
+        if (!Auth::check()) {
             session()->put('admin_intended_url', $request->fullUrl());
-
-            // Redirect to admin login page
             return redirect()->route('admin.login')
                 ->with('error', 'Silakan login dengan akun Google Anda untuk mengakses admin panel.');
         }
 
-        // Check if user is still an admin (email authorization)
-        if (!Auth::user()->isAuthorizedAdmin()) {
-            // Logout user immediately
+        // Check if user has admin access
+        $user = Auth::user();
+        if (!$user->is_admin) {
             Auth::logout();
-            session()->forget(['admin_google_user', 'admin_login_time', 'admin_intended_url']);
-
+            session()->flush();
             return redirect()->route('admin.login')
                 ->with('error', 'Akses admin Anda telah dicabut. Silakan hubungi administrator.');
-        }
-
-        // Optional: Check session timeout (24 hours)
-        $loginTime = session('admin_login_time');
-        if ($loginTime && now()->diffInHours($loginTime) > 24) {
-            // Force re-authentication
-            session()->forget(['admin_google_user', 'admin_login_time']);
-            Auth::logout();
-
-            return redirect()->route('admin.login')
-                ->with('error', 'Sesi admin telah kedaluwarsa. Silakan login kembali.');
         }
 
         return $next($request);
