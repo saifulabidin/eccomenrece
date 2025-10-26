@@ -120,14 +120,15 @@ class ProductResource extends Resource
                     ->multiple()
                     ->image()
                     ->directory('products')
+                    ->disk('public')
+                    ->visibility('public')
                     ->acceptedFileTypes([
                         'image/jpeg',
                         'image/jpg',
                         'image/png',
                         'image/webp',
-                        'image/gif',
-                        'image/svg+xml'
                     ])
+                    ->maxSize(5120)
                     ->nullable(),
                 Forms\Components\Toggle::make('has_variants')
                     ->label('Aktifkan Varian')
