@@ -12,8 +12,8 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get admin emails from .env
-        $adminEmails = explode(',', env('ADMIN_EMAILS', ''));
+        // Get admin emails from config
+        $adminEmails = config('auth.admin_emails', []);
         
         foreach ($adminEmails as $email) {
             $email = trim($email);

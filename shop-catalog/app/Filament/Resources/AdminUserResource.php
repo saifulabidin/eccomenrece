@@ -42,8 +42,7 @@ class AdminUserResource extends Resource
                             ->rules([
                                 function () {
                                     return function (string $attribute, $value, \Closure $fail) {
-                                        $superAdminEmails = explode(',', env('ADMIN_EMAILS', ''));
-                                        $superAdminEmails = array_map('trim', $superAdminEmails);
+                                        $superAdminEmails = config('auth.admin_emails', []);
                                         
                                         if (in_array($value, $superAdminEmails)) {
                                             $fail('Email ini adalah Super Admin dan tidak dapat ditambahkan secara manual.');
@@ -88,9 +87,8 @@ class AdminUserResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                // Hide super admin emails from .env
-                $superAdminEmails = explode(',', env('ADMIN_EMAILS', ''));
-                $superAdminEmails = array_map('trim', $superAdminEmails);
+                // Hide super admin emails from config
+                $superAdminEmails = config('auth.admin_emails', []);
                 $query->whereNotIn('email', $superAdminEmails);
             })
             ->columns([

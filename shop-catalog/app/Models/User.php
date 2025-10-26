@@ -6,8 +6,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -66,8 +68,59 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if user can access Filament admin panel
+     * Required by FilamentUser interface
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Allow if user is marked as admin AND email is authorized
+        if (!$this->isAdmin()) {
+            return false;
+        }
+
+        // Double check authorization (database or config)
+        return $this->isAuthorizedAdmin();
+    }
+
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        if (!$this->isAdmin()) {
+            return false;
+        }
+
+        // Check if email is in super admin config
+        $superAdminEmails = config('auth.admin_emails', []);
+        return in_array($this->email, $superAdminEmails);
+    }
+
+    /**
+     * Get user's admin role
+     */
+    public function getAdminRole(): ?string
+    {
+        if (!$this->isAdmin()) {
+            return null;
+        }
+
+        // Check if super admin
+        if ($this->isSuperAdmin()) {
+            return 'super_admin';
+        }
+
+        // Check database for role
+        $adminUser = AdminUser::where('email', $this->email)
+            ->where('is_active', true)
+            ->first();
+
+        return $adminUser?->role ?? 'admin';
+    }
+
+    /**
      * Check if user's email is in admin emails list
-     * Checks both .env and database
+     * Checks both config and database
      */
     public function isAuthorizedAdmin(): bool
     {
@@ -76,8 +129,8 @@ class User extends Authenticatable
             return true;
         }
 
-        // Fallback to .env config
-        $adminEmails = explode(',', env('ADMIN_EMAILS', ''));
+        // Fallback to config
+        $adminEmails = config('auth.admin_emails', []);
         return in_array($this->email, $adminEmails);
     }
 
@@ -97,8 +150,8 @@ class User extends Authenticatable
         // Check database first
         $isAdminInDb = AdminUser::isAuthorizedEmail($googleUser['email']);
         
-        // Fallback to .env config
-        $adminEmails = explode(',', env('ADMIN_EMAILS', ''));
+        // Fallback to config
+        $adminEmails = config('auth.admin_emails', []);
         $isAdminInEnv = in_array($googleUser['email'], $adminEmails);
         
         $isAdmin = $isAdminInDb || $isAdminInEnv;

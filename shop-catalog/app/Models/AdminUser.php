@@ -19,12 +19,11 @@ class AdminUser extends Model
     ];
 
     /**
-     * Check if user is super admin (email in .env)
+     * Check if user is super admin (email in config)
      */
     public function isSuperAdmin(): bool
     {
-        $superAdminEmails = explode(',', env('ADMIN_EMAILS', ''));
-        $superAdminEmails = array_map('trim', $superAdminEmails);
+        $superAdminEmails = config('auth.admin_emails', []);
         return in_array($this->email, $superAdminEmails) && $this->role === 'super_admin';
     }
 

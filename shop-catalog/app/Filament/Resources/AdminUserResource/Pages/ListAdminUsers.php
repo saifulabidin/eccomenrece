@@ -29,16 +29,14 @@ class ListAdminUsers extends ListRecords
                 ->color('info')
                 ->requiresConfirmation()
                 ->modalHeading('Sinkronkan Pengguna Admin')
-                ->modalDescription('Ini akan menambahkan email admin apa pun dari ADMIN_EMAILS di .env yang belum ada di database.')
+                ->modalDescription('Ini akan menambahkan email admin yang belum ada di database.')
                 ->modalSubmitActionLabel('Ya, sinkronkan sekarang')
                 ->action(function () {
-                    $adminEmails = explode(',', env('ADMIN_EMAILS', ''));
+                    $adminEmails = config('auth.admin_emails', []);
                     $synced = 0;
                     
                     foreach ($adminEmails as $email) {
-                        $email = trim($email);
-                        
-                        if (!empty($email)) {
+                        $email = trim($email);                        if (!empty($email)) {
                             $existed = AdminUser::where('email', $email)->exists();
                             
                             if (!$existed) {
