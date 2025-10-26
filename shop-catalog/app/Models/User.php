@@ -83,13 +83,23 @@ class User extends Authenticatable implements FilamentUser
      */
     public function isSuperAdmin(): bool
     {
-        if (!$this->isAdmin()) {
+        if (!$this->is_admin) {
             return false;
         }
 
         // Check if email is in super admin config
         $superAdminEmails = config('auth.admin_emails', []);
-        return in_array($this->email, $superAdminEmails);
+        if (in_array($this->email, $superAdminEmails)) {
+            return true;
+        }
+
+        // Check database as fallback
+        $adminUser = AdminUser::where('email', $this->email)
+            ->where('is_active', true)
+            ->where('role', 'super_admin')
+            ->first();
+
+        return $adminUser !== null;
     }
 
     /**
