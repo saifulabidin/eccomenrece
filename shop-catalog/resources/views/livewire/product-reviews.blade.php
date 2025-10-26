@@ -215,6 +215,14 @@
                             @enderror
                         </div>
 
+                        <!-- reCAPTCHA -->
+                        <div class="mb-3" wire:ignore>
+                            <div id="recaptcha-container"></div>
+                            @error('recaptchaToken')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Submit Button -->
                         <button type="submit" class="btn btn-primary {{ $isSubmitting ? 'disabled' : '' }}" {{ $isSubmitting ? 'disabled' : '' }}>
                             @if($isSubmitting)
@@ -264,3 +272,44 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
+<script>
+    let recaptchaWidgetId = null;
+    
+    // Callback when reCAPTCHA API loads
+    function onRecaptchaLoad() {
+        if (document.getElementById('recaptcha-container')) {
+            recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
+                'sitekey': '{{ config('services.recaptcha.site_key') }}',
+                'callback': onRecaptchaSuccess,
+                'expired-callback': onRecaptchaExpired
+            });
+        }
+    }
+    
+    // reCAPTCHA success callback
+    function onRecaptchaSuccess(token) {
+        @this.set('recaptchaToken', token);
+    }
+    
+    // reCAPTCHA expired callback
+    function onRecaptchaExpired() {
+        @this.set('recaptchaToken', null);
+        if (recaptchaWidgetId !== null) {
+            grecaptcha.reset(recaptchaWidgetId);
+        }
+    }
+    
+    // Listen for reset event from Livewire (on error)
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('resetRecaptcha', () => {
+            if (typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== null) {
+                grecaptcha.reset(recaptchaWidgetId);
+                @this.set('recaptchaToken', null);
+            }
+        });
+    });
+</script>
+@endpush

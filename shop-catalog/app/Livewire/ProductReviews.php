@@ -19,6 +19,7 @@ class ProductReviews extends Component
     public $sortBy = 'latest'; // latest, highest
     public $isSubmitting = false;
     public $hasSubmittedReview = false;
+    public $recaptchaToken = null;
 
     protected $queryString = [
         'sortBy' => ['except' => 'latest'],
@@ -27,6 +28,7 @@ class ProductReviews extends Component
     protected $rules = [
         'rating' => 'required|integer|min:1|max:5',
         'review' => 'required|string|min:10|max:1000',
+        'recaptchaToken' => 'required',
     ];
 
     protected $messages = [
@@ -36,6 +38,7 @@ class ProductReviews extends Component
         'review.required' => 'Ulasan wajib diisi',
         'review.min' => 'Ulasan minimal 10 karakter',
         'review.max' => 'Ulasan maksimal 1000 karakter',
+        'recaptchaToken.required' => 'Mohon verifikasi reCAPTCHA',
     ];
 
     public function mount($slug)
@@ -62,6 +65,18 @@ class ProductReviews extends Component
                 return;
             }
 
+            // Verify reCAPTCHA
+            $recaptcha = new \ReCaptcha\ReCaptcha(config('services.recaptcha.secret_key'));
+            $resp = $recaptcha->verify($this->recaptchaToken, request()->ip());
+
+            if (!$resp->isSuccess()) {
+                session()->flash('review_error', 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                $this->isSubmitting = false;
+                $this->recaptchaToken = null; // Reset token
+                $this->dispatch('resetRecaptcha'); // Trigger reset on frontend
+                return;
+            }
+
             // Check if user already reviewed this product
             $existingReview = Review::where('product_id', $this->product->id)
                 ->where('google_id', $this->googleUser['id'])
@@ -85,13 +100,15 @@ class ProductReviews extends Component
             ]);
 
             // Reset form and hide form
-            $this->reset(['rating', 'review']);
+            $this->reset(['rating', 'review', 'recaptchaToken']);
             $this->hasSubmittedReview = true;
 
             session()->flash('review_success', 'Ulasan Anda berhasil dikirim dan menunggu persetujuan admin');
 
         } catch (\Exception $e) {
             session()->flash('review_error', 'Terjadi kesalahan: ' . $e->getMessage());
+            $this->recaptchaToken = null;
+            $this->dispatch('resetRecaptcha');
         } finally {
             $this->isSubmitting = false;
         }
