@@ -89,6 +89,9 @@ class AdminGoogleController extends Controller
             // Login the user
             Auth::login($user, true);
 
+            // Regenerate session to prevent fixation
+            $request->session()->regenerate();
+
             // Store admin session data
             session([
                 'admin_google_user' => [
