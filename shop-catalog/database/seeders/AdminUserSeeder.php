@@ -19,12 +19,13 @@ class AdminUserSeeder extends Seeder
             $email = trim($email);
             
             if (!empty($email)) {
-                AdminUser::firstOrCreate(
+                AdminUser::updateOrCreate(
                     ['email' => $email],
                     [
-                        'name' => 'Admin',
+                        'name' => 'Super Admin',
+                        'role' => 'super_admin', // Set as super admin
                         'is_active' => true,
-                        'notes' => 'Initial admin from .env configuration',
+                        'notes' => 'Super admin from .env configuration',
                     ]
                 );
             }

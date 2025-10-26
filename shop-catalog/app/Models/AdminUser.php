@@ -9,6 +9,7 @@ class AdminUser extends Model
     protected $fillable = [
         'email',
         'name',
+        'role',
         'is_active',
         'notes',
     ];
@@ -16,6 +17,16 @@ class AdminUser extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Check if user is super admin (email in .env)
+     */
+    public function isSuperAdmin(): bool
+    {
+        $superAdminEmails = explode(',', env('ADMIN_EMAILS', ''));
+        $superAdminEmails = array_map('trim', $superAdminEmails);
+        return in_array($this->email, $superAdminEmails) && $this->role === 'super_admin';
+    }
 
     /**
      * Check if email is authorized admin
