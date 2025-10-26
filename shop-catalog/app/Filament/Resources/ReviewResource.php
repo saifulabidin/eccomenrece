@@ -144,6 +144,9 @@ class ReviewResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat'),
+                    
                 Tables\Actions\Action::make('approve')
                     ->label('Setujui')
                     ->icon('heroicon-o-check')
@@ -160,9 +163,6 @@ class ReviewResource extends Resource
                     ->action(fn ($record) => $record->delete())
                     ->requiresConfirmation()
                     ->after(fn () => Session::flash('success', 'Ulasan berhasil ditolak dan dihapus')),
-
-                Tables\Actions\EditAction::make()
-                    ->label('Edit'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -184,9 +184,6 @@ class ReviewResource extends Resource
 
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
             ]);
     }
 
@@ -201,8 +198,6 @@ class ReviewResource extends Resource
     {
         return [
             'index' => Pages\ListReviews::route('/'),
-            'create' => Pages\CreateReview::route('/create'),
-            'edit' => Pages\EditReview::route('/{record}/edit'),
         ];
     }
 }
