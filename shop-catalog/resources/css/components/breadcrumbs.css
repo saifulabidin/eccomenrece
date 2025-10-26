@@ -1,0 +1,30 @@
+    .modern-breadcrumb {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .modern-breadcrumb .breadcrumb-item {
+        font-size: 0.875rem;
+    }
+    
+    .modern-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.2rem;
+    }
+    
+    .modern-breadcrumb a {
+        color: var(--bs-primary);
+        transition: all 0.3s ease;
+    }
+    
+    .modern-breadcrumb a:hover {
+        color: var(--bs-info);
+    }
+    
+    .modern-breadcrumb .active {
+        color: rgba(255, 255, 255, 0.7);
+    }

@@ -19,6 +19,12 @@ Route::get('/keranjang', function () {
     return view('cart');
 })->name('cart');
 
+// Sitemap XML
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
+// PWA Manifest JSON
+Route::get('/manifest.json', [App\Http\Controllers\ManifestController::class, 'index'])->name('manifest');
+
 // Google Authentication Routes
 Route::get('/auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');

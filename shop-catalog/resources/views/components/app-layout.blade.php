@@ -6,6 +6,23 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <base href="{{ url('/') }}/">
     
+    <!-- Favicon -->
+    @php
+        $config = \App\Models\StoreConfig::first();
+        $faviconUrl = $config && $config->favicon 
+            ? asset('storage/' . $config->favicon) 
+            : asset('favicon.ico');
+    @endphp
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <!-- Title -->
     <title>{{ $metaTitle ?? $storeName }}</title>
     
@@ -96,9 +113,121 @@
         {{ $slot }}
     </main>
 
-    <footer class="py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 {{ $storeName }}. All rights reserved.</p>
+    <footer class="modern-footer bg-darker text-light py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- About Section -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-primary mb-3">{{ $storeName }}</h5>
+                    @php
+                        $config = \App\Models\StoreConfig::first();
+                    @endphp
+                    <p class="text-muted small">
+                        {{ $config && $config->description 
+                            ? $config->description 
+                            : 'Toko online terpercaya menyediakan berbagai produk berkualitas dengan harga terbaik. Belanja mudah, aman, dan terpercaya.' 
+                        }}
+                    </p>
+                    <div class="social-links mt-3">
+                        @if($config && $config->facebook_url)
+                            <a href="{{ $config->facebook_url }}" target="_blank" class="text-light me-3" title="Facebook">
+                                <i class="bi bi-facebook fs-5"></i>
+                            </a>
+                        @endif
+                        @if($config && $config->instagram_url)
+                            <a href="{{ $config->instagram_url }}" target="_blank" class="text-light me-3" title="Instagram">
+                                <i class="bi bi-instagram fs-5"></i>
+                            </a>
+                        @endif
+                        @if($config && $config->whatsapp_number)
+                            <a href="https://wa.me/{{ $config->whatsapp_number }}" target="_blank" class="text-light me-3" title="WhatsApp">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                            </a>
+                        @endif
+                        @if($config && $config->twitter_url)
+                            <a href="{{ $config->twitter_url }}" target="_blank" class="text-light" title="Twitter">
+                                <i class="bi bi-twitter fs-5"></i>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-light mb-3">Menu</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{{ route('home') }}" class="text-muted small">Home</a></li>
+                        <li><a href="{{ route('catalog') }}" class="text-muted small">Katalog</a></li>
+                        <li><a href="{{ route('cart') }}" class="text-muted small">Keranjang</a></li>
+                    </ul>
+                </div>
+
+                <!-- Categories -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-light mb-3">Kategori</h6>
+                    <ul class="list-unstyled footer-links">
+                        @php
+                            $categories = \App\Models\Category::take(5)->get();
+                        @endphp
+                        @foreach($categories as $category)
+                            <li>
+                                <a href="{{ route('catalog', ['category' => $category->id]) }}" class="text-muted small">
+                                    {{ $category->name }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-light mb-3">Kontak</h6>
+                    <ul class="list-unstyled footer-contact">
+                        @php
+                            $config = \App\Models\StoreConfig::first();
+                        @endphp
+                        @if($config && $config->email)
+                            <li class="text-muted small mb-2">
+                                <i class="bi bi-envelope me-2"></i>
+                                {{ $config->email }}
+                            </li>
+                        @endif
+                        @if($config && $config->phone)
+                            <li class="text-muted small mb-2">
+                                <i class="bi bi-telephone me-2"></i>
+                                {{ $config->phone }}
+                            </li>
+                        @endif
+                        @if($config && $config->whatsapp_number)
+                            <li class="text-muted small mb-2">
+                                <i class="bi bi-whatsapp me-2"></i>
+                                {{ $config->whatsapp_number }}
+                            </li>
+                        @endif
+                        @if($config && $config->address)
+                            <li class="text-muted small">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                {{ Str::limit($config->address, 50) }}
+                            </li>
+                        @endif
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="border-secondary my-4">
+
+            <!-- Copyright -->
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted small mb-0">
+                        &copy; {{ date('Y') }} {{ $storeName }}. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-muted small me-3">Privacy Policy</a>
+                    <a href="#" class="text-muted small">Terms of Service</a>
+                </div>
+            </div>
         </div>
     </footer>
 

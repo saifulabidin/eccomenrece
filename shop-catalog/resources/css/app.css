@@ -8,6 +8,9 @@
 /* Import Component CSS Files */
 @import './components/variables.css';
 @import './components/animations.css';
+@import './components/layout.css';
+@import './components/skeleton.css';
+@import './components/breadcrumbs.css';
 @import './components/navbar.css';
 @import './components/hero.css';
 @import './components/product-cards.css';

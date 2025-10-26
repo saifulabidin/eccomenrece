@@ -1,4 +1,9 @@
 <div class="container-fluid py-4 catalog-page">
+    <!-- Breadcrumbs -->
+    <x-breadcrumbs :items="[
+        ['label' => 'Katalog', 'url' => route('catalog')]
+    ]" />
+    
     <!-- Header Section -->
     <div class="row mb-8">
         <div class="col-12">
@@ -214,11 +219,22 @@
 
     <!-- Products Grid -->
     <div class="products-grid-container">
-        @if($products->count() > 0)
-            <x-product-grid :products="$products" columns="col-lg-3 col-md-4 col-sm-6" />
-        @else
-                <!-- Empty State -->
-                <div class="text-center py-5">
+        <!-- Loading Skeleton -->
+        <div wire:loading class="row g-4">
+            @for($i = 0; $i < 8; $i++)
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <x-product-skeleton />
+                </div>
+            @endfor
+        </div>
+        
+        <!-- Actual Products -->
+        <div wire:loading.remove>
+            @if($products->count() > 0)
+                <x-product-grid :products="$products" columns="col-lg-3 col-md-4 col-sm-6" />
+            @else
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
                     <div class="mb-4">
                         <div class="bg-secondary bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center empty-state-icon" style="width: 120px; height: 120px;">
                             <i class="bi bi-search fs-1 text-muted"></i>
@@ -243,6 +259,7 @@
                         </a>
                     </div>
                       @endif
+        </div>
     </div>
 
     <!-- Pagination -->

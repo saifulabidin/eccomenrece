@@ -1,4 +1,11 @@
 <div class="container my-5">
+    <!-- Breadcrumbs -->
+    <x-breadcrumbs :items="[
+        ['label' => 'Katalog', 'url' => route('catalog')],
+        ['label' => $product->category->name, 'url' => route('catalog', ['category' => $product->category_id])],
+        ['label' => $product->name, 'url' => '']
+    ]" />
+    
     <!-- Product Tabs -->
     <div class="row mb-4">
         <div class="col-12">
