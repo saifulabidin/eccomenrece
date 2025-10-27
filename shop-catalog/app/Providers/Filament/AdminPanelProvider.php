@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->loginRouteSlug('login')
+            ->loginRouteName('admin.login')
             ->brandName('Admin Katalog Toko')
             ->favicon(asset('favicon.ico'))
             ->colors([
