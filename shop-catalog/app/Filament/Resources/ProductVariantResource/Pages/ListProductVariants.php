@@ -126,7 +126,7 @@ class ListProductVariants extends ListRecords
                         ->after(fn () => \Filament\Notifications\Notification::make()
                             ->title('Product variants berhasil diaktifkan')
                             ->success()
-                            ->send())
+                            ->send()),
 
                     Tables\Actions\BulkAction::make('deactivate')
                         ->label('Nonaktifkan yang Dipilih')
