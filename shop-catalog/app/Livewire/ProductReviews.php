@@ -19,6 +19,8 @@ class ProductReviews extends Component
     public $sortBy = 'latest'; // latest, highest
     public $isSubmitting = false;
     public $hasSubmittedReview = false;
+    public $hasApprovedReview = false;
+    public $isEditMode = false;
     public $recaptchaToken = null;
 
     protected $queryString = [
@@ -45,6 +47,22 @@ class ProductReviews extends Component
     {
         $this->product = Product::where('slug', $slug)->where('status', 'published')->firstOrFail();
         $this->googleUser = GoogleController::getCurrentGoogleUser(request());
+
+        // Check if user has already reviewed THIS specific product
+        if ($this->googleUser) {
+            $existingReview = Review::where('product_id', $this->product->id)
+                ->where('google_id', $this->googleUser['id'])
+                ->first();
+
+            $this->hasSubmittedReview = $existingReview && !$existingReview->approved; // Waiting approval
+            $this->hasApprovedReview = $existingReview && $existingReview->approved; // Already approved
+
+            // Pre-fill form if user has an existing review (for editing)
+            if ($existingReview) {
+                $this->rating = $existingReview->rating;
+                $this->review = $existingReview->review;
+            }
+        }
     }
 
     public function submitReview()
@@ -82,13 +100,7 @@ class ProductReviews extends Component
                 ->where('google_id', $this->googleUser['id'])
                 ->first();
 
-            if ($existingReview) {
-                session()->flash('review_error', 'Anda sudah memberikan ulasan untuk produk ini');
-                $this->isSubmitting = false;
-                return;
-            }
-
-        Review::create([
+            $reviewData = [
                 'product_id' => $this->product->id,
                 'google_id' => $this->googleUser['id'],
                 'user_name' => $this->googleUser['name'],
@@ -97,13 +109,31 @@ class ProductReviews extends Component
                 'rating' => $this->rating,
                 'review' => $this->review,
                 'ip_address' => request()->ip(),
-            ]);
+            ];
 
-            // Reset form and hide form
-            $this->reset(['rating', 'review', 'recaptchaToken']);
-            $this->hasSubmittedReview = true;
+            if ($existingReview) {
+                // Update existing review for this product
+                $existingReview->update($reviewData);
+                $message = 'Ulasan Anda berhasil diperbarui';
+            } else {
+                // Create new review for this product
+                Review::create($reviewData);
+                $message = 'Ulasan Anda berhasil dikirim dan menunggu persetujuan admin';
+            }
 
-            session()->flash('review_success', 'Ulasan Anda berhasil dikirim dan menunggu persetujuan admin');
+            // Update review status flags
+            $existingReview = Review::where('product_id', $this->product->id)
+                ->where('google_id', $this->googleUser['id'])
+                ->first();
+
+            $this->hasSubmittedReview = $existingReview && !$existingReview->approved; // Waiting approval
+            $this->hasApprovedReview = $existingReview && $existingReview->approved; // Already approved
+
+            // Reset reCAPTCHA token but keep rating and review for editing
+            $this->recaptchaToken = null;
+            $this->isEditMode = false;
+
+            session()->flash('review_success', $message);
 
         } catch (\Exception $e) {
             session()->flash('review_error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -144,15 +174,74 @@ class ProductReviews extends Component
         return redirect()->route('auth.google.logout');
     }
 
+    public function editReview()
+    {
+        if ($this->googleUser) {
+            $existingReview = Review::where('product_id', $this->product->id)
+                ->where('google_id', $this->googleUser['id'])
+                ->first();
+
+            if ($existingReview) {
+                $this->rating = $existingReview->rating;
+                $this->review = $existingReview->review;
+                $this->isEditMode = true;
+                $this->dispatch('focusReviewForm');
+                $this->dispatch('renderRecaptcha');
+            }
+        }
+    }
+
     public function resetForm()
     {
-        $this->hasSubmittedReview = false;
-        $this->rating = 5;
-        $this->review = '';
+        // Reset review status flags based on current product
+        if ($this->googleUser) {
+            $existingReview = Review::where('product_id', $this->product->id)
+                ->where('google_id', $this->googleUser['id'])
+                ->first();
+
+            $this->hasSubmittedReview = $existingReview && !$existingReview->approved; // Waiting approval
+            $this->hasApprovedReview = $existingReview && $existingReview->approved; // Already approved
+
+            // If user has an existing review, pre-fill the form for editing
+            if ($existingReview) {
+                $this->rating = $existingReview->rating;
+                $this->review = $existingReview->review;
+            } else {
+                // Reset to defaults if no review exists
+                $this->rating = 5;
+                $this->review = '';
+            }
+        } else {
+            $this->hasSubmittedReview = false;
+            $this->hasApprovedReview = false;
+            $this->rating = 5;
+            $this->review = '';
+        }
+
+        $this->recaptchaToken = null;
+        $this->isEditMode = false;
     }
 
     public function render()
     {
+        // Clear success message if user's review is now approved and visible
+        if ($this->googleUser && session('review_success')) {
+            $userReviewVisible = $this->product->approvedReviews()
+                ->where('google_id', $this->googleUser['id'])
+                ->exists();
+
+            if ($userReviewVisible) {
+                session()->forget('review_success');
+            }
+        }
+
+        // Update hasApprovedReview status in real-time
+        if ($this->googleUser) {
+            $this->hasApprovedReview = $this->product->approvedReviews()
+                ->where('google_id', $this->googleUser['id'])
+                ->exists();
+        }
+
         return view('livewire.product-reviews', [
             'reviews' => $this->reviews,
         ]);

@@ -142,13 +142,17 @@
     @endif
 
     <!-- Review Form -->
-    @if(!$hasSubmittedReview)
+    @if((!$hasSubmittedReview && !$hasApprovedReview) || $isEditMode)
         <div class="review-form-section mb-5">
             <div class="card bg-dark border-secondary">
                 <div class="card-header border-secondary">
                     <h5 class="text-light mb-0">
                         @if($googleUser)
-                            <i class="bi bi-pencil-square me-2"></i>Tulis Ulasan Anda
+                            @if($isEditMode)
+                                <i class="bi bi-pencil-fill me-2"></i>Edit Ulasan Anda
+                            @else
+                                <i class="bi bi-pencil-square me-2"></i>Tulis Ulasan Anda
+                            @endif
                         @else
                             <i class="bi bi-google me-2"></i>Login untuk Review
                         @endif
@@ -204,9 +208,9 @@
 
                         <!-- Review Textarea -->
                         <div class="mb-3">
-                            <label for="review" class="form-label text-light">Ulasan <span class="text-danger">*</span></label>
+                            <label for="review-textarea" class="form-label text-light">Ulasan <span class="text-danger">*</span></label>
                             <textarea class="form-control bg-dark border-secondary text-light @error('review') is-invalid @enderror"
-                                      id="review"
+                                      id="review-textarea"
                                       wire:model="review"
                                       rows="4"
                                       placeholder="Bagikan pengalaman Anda dengan produk ini..."></textarea>
@@ -224,14 +228,25 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary {{ $isSubmitting ? 'disabled' : '' }}" {{ $isSubmitting ? 'disabled' : '' }}>
-                            @if($isSubmitting)
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                Mengirim...
-                            @else
-                                <i class="bi bi-send me-2"></i>Kirim Ulasan
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary {{ $isSubmitting ? 'disabled' : '' }}" {{ $isSubmitting ? 'disabled' : '' }}>
+                                @if($isSubmitting)
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    @if($isEditMode)
+                                        Memperbarui...
+                                    @else
+                                        Mengirim...
+                                    @endif
+                                @else
+                                    <i class="bi bi-{{ $isEditMode ? 'check' : 'send' }} me-2"></i>{{ $isEditMode ? 'Update Ulasan' : 'Kirim Ulasan' }}
+                                @endif
+                            </button>
+                            @if($isEditMode)
+                                <button type="button" wire:click="resetForm" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x me-2"></i>Batal
+                                </button>
                             @endif
-                        </button>
+                        </div>
                     </form>
                 @else
                     <div class="text-center py-4">
@@ -247,13 +262,36 @@
             </div>
         </div>
     </div>
-    @else
-        <!-- Success Message -->
+    @elseif($hasSubmittedReview)
+        <!-- Pending Review Message -->
         <div class="review-form-section mb-5">
             <div class="card bg-dark border-secondary">
                 <div class="card-header border-secondary">
                     <h5 class="text-light mb-0">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>Ulasan Terkirim
+                        <i class="bi bi-clock-fill text-warning me-2"></i>Ulasan Menunggu Persetujuan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-clock-fill text-warning" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="text-light mb-2">Terima Kasih!</h4>
+                        <p class="text-muted">Ulasan Anda berhasil dikirim dan sedang menunggu persetujuan admin.</p>
+                        <button wire:click="resetForm" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil-square me-2"></i>Edit Ulasan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @elseif($hasApprovedReview)
+        <!-- Approved Review - Edit Option -->
+        <div class="review-form-section mb-5">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header border-secondary">
+                    <h5 class="text-light mb-0">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>Ulasan Anda
                     </h5>
                 </div>
                 <div class="card-body">
@@ -261,10 +299,10 @@
                         <div class="mb-3">
                             <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
                         </div>
-                        <h4 class="text-light mb-2">Terima Kasih!</h4>
-                        <p class="text-muted">Ulasan Anda berhasil dikirim dan sedang menunggu persetujuan admin.</p>
-                        <button wire:click="resetForm" class="btn btn-outline-primary">
-                            <i class="bi bi-pencil-square me-2"></i>Tulis Ulasan Lain
+                        <h4 class="text-light mb-2">Ulasan Anda Telah Dipublikasikan</h4>
+                        <p class="text-muted">Terima kasih atas ulasan Anda! Anda dapat mengedit ulasan ini kapan saja.</p>
+                        <button wire:click="editReview" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Edit Ulasan
                         </button>
                     </div>
                 </div>
@@ -301,6 +339,33 @@
             grecaptcha.reset(recaptchaWidgetId);
         }
     }
+
+    // Manual reCAPTCHA render function for edit mode
+    function renderRecaptcha() {
+        // Wait a bit to ensure the container is rendered in the DOM
+        setTimeout(() => {
+            const container = document.getElementById('recaptcha-container');
+            if (container) {
+                if (typeof grecaptcha !== 'undefined') {
+                    // If widget already exists, reset it first
+                    if (recaptchaWidgetId !== null) {
+                        grecaptcha.reset(recaptchaWidgetId);
+                    }
+
+                    // Render the widget
+                    recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
+                        'sitekey': '{{ config('services.recaptcha.site_key') }}',
+                        'callback': onRecaptchaSuccess,
+                        'expired-callback': onRecaptchaExpired
+                    });
+                } else {
+                    // If reCAPTCHA API is not loaded yet, try again after a delay
+                    console.warn('reCAPTCHA API not loaded yet, retrying...');
+                    setTimeout(renderRecaptcha, 500);
+                }
+            }
+        }, 100);
+    }
     
     // Listen for reset event from Livewire (on error)
     document.addEventListener('livewire:init', () => {
@@ -309,6 +374,26 @@
                 grecaptcha.reset(recaptchaWidgetId);
                 @this.set('recaptchaToken', null);
             }
+        });
+
+        // Listen for focusReviewForm event
+        Livewire.on('focusReviewForm', () => {
+            // Scroll to review form
+            const reviewForm = document.querySelector('.review-form-section');
+            if (reviewForm) {
+                reviewForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Focus on review textarea
+            const reviewTextarea = document.getElementById('review-textarea');
+            if (reviewTextarea) {
+                reviewTextarea.focus();
+            }
+        });
+
+        // Listen for renderRecaptcha event
+        Livewire.on('renderRecaptcha', () => {
+            renderRecaptcha();
         });
     });
 </script>
