@@ -31,10 +31,10 @@ Route::get('/auth/google/callback', [App\Http\Controllers\Auth\GoogleController:
 Route::post('/auth/google/logout', [App\Http\Controllers\Auth\GoogleController::class, 'logout'])->name('auth.google.logout');
 
 // Admin Google Authentication Routes
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('filament.admin.')->group(function () {
     Route::get('/login', function () {
         return view('auth.admin-login');
-    })->name('login');
+    })->name('auth.login');
 
     Route::get('/auth/google', [App\Http\Controllers\Auth\AdminGoogleController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('/auth/google/callback', [App\Http\Controllers\Auth\AdminGoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
