@@ -13,66 +13,28 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Kategori yang sudah ada
         Category::create([
-            'name' => 'Elektronik',
-            'slug' => 'elektronik',
-            'description' => 'Produk elektronik dan gadget',
+            'name' => 'Pengembangan Web Full Stack',
+            'slug' => 'pengembangan-web-full-stack',
+            'description' => 'Jasa pembuatan website company profile, landing page, dan aplikasi web kustom',
         ]);
 
         Category::create([
-            'name' => 'Pakaian',
-            'slug' => 'pakaian',
-            'description' => 'Pakaian pria dan wanita',
+            'name' => 'Layanan Keamanan Siber',
+            'slug' => 'layanan-keamanan-siber',
+            'description' => 'Jasa penetration testing, security audit, dan hardening server',
         ]);
 
         Category::create([
-            'name' => 'Rumah Tangga',
-            'slug' => 'rumah-tangga',
-            'description' => 'Barang rumah tangga',
-        ]);
-
-        // Tambahan kategori baru
-        Category::create([
-            'name' => 'Makanan & Minuman',
-            'slug' => 'makanan-minuman',
-            'description' => 'Produk makanan dan minuman segar',
+            'name' => 'Pengembangan Aplikasi Mobile',
+            'slug' => 'pengembangan-aplikasi-mobile',
+            'description' => 'Jasa pembuatan aplikasi mobile Android & iOS dengan Flutter',
         ]);
 
         Category::create([
-            'name' => 'Kesehatan & Kecantikan',
-            'slug' => 'kesehatan-kecantikan',
-            'description' => 'Produk perawatan kesehatan dan kecantikan',
-        ]);
-
-        Category::create([
-            'name' => 'Olahraga & Outdoor',
-            'slug' => 'olahraga-outdoor',
-            'description' => 'Peralatan olahraga dan aktivitas outdoor',
-        ]);
-
-        Category::create([
-            'name' => 'Otomotif',
-            'slug' => 'otomotif',
-            'description' => 'Aksesoris dan peralatan otomotif',
-        ]);
-
-        Category::create([
-            'name' => 'Buku & Alat Tulis',
-            'slug' => 'buku-alat-tulis',
-            'description' => 'Buku, majalah, dan peralatan tulis menulis',
-        ]);
-
-        Category::create([
-            'name' => 'Mainan & Hobi',
-            'slug' => 'mainan-hobi',
-            'description' => 'Mainan anak-anak dan perlengkapan hobi',
-        ]);
-
-        Category::create([
-            'name' => 'Perlengkapan Bayi',
-            'slug' => 'perlengkapan-bayi',
-            'description' => 'Kebutuhan bayi dan anak-anak',
+            'name' => 'Paket Maintenance & Retainer',
+            'slug' => 'paket-maintenance-retainer',
+            'description' => 'Paket maintenance website bulanan dan jasa developer retainer',
         ]);
     }
 }
