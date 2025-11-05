@@ -24,9 +24,9 @@ class ProductCatalog extends Component
 
     public function mount()
     {
-        $this->categoryId = request('categoryId', '');
+        $this->categoryId = $this->sanitizeCategoryId(request('categoryId', ''));
         // Prioritize URL parameters, then use defaults
-        $this->perPage = request('perPage', $this->perPage);
+        $this->perPage = $this->sanitizePerPage(request('perPage', $this->perPage));
     }
 
     public function toggleMobileFilter()
@@ -43,7 +43,7 @@ class ProductCatalog extends Component
 
     public function updatePerPage($count)
     {
-        $this->perPage = (int) $count;
+        $this->perPage = $this->sanitizePerPage($count);
         $this->resetPage();
     }
 
@@ -73,6 +73,50 @@ class ProductCatalog extends Component
         $this->resetPage();
     }
 
+    public function updatedCategoryId($value)
+    {
+        $this->categoryId = $this->sanitizeCategoryId($value);
+    }
+
+    public function updatedPerPage($value)
+    {
+        $this->perPage = $this->sanitizePerPage($value);
+    }
+
+    protected function sanitizeCategoryId($value)
+    {
+        if (is_null($value) || $value === '') {
+            return '';
+        }
+
+        if (is_numeric($value)) {
+            $intValue = (int) $value;
+            return $intValue > 0 ? $intValue : '';
+        }
+
+        return '';
+    }
+
+    protected function sanitizePerPage($value)
+    {
+        if (is_null($value) || $value === '') {
+            return 4;
+        }
+
+        if (! is_numeric($value)) {
+            return 4;
+        }
+
+        $intValue = (int) $value;
+
+        if ($intValue <= 0) {
+            return 4;
+        }
+
+        // Optional: enforce sane upper bound to avoid abuse
+        return min($intValue, 48);
+    }
+
     public function render()
     {
         $query = Product::with(['category', 'activeVariants', 'variantAttributes'])->where('status', 'published');
@@ -93,8 +137,9 @@ class ProductCatalog extends Component
             });
         }
 
-        if ($this->categoryId) {
-            $query->where('category_id', $this->categoryId);
+        $categoryFilter = $this->sanitizeCategoryId($this->categoryId);
+        if ($categoryFilter !== '') {
+            $query->where('category_id', $categoryFilter);
         }
 
         // Order by relevance if search is active, otherwise by newest
@@ -121,12 +166,13 @@ class ProductCatalog extends Component
         // Build query parameters for pagination
         $queryParams = [];
         if ($this->search) $queryParams['search'] = $this->search;
-        if ($this->categoryId) $queryParams['categoryId'] = $this->categoryId;
-        if ($this->perPage != 4) $queryParams['perPage'] = $this->perPage;
+    if ($categoryFilter !== '') $queryParams['categoryId'] = $categoryFilter;
+    $perPageValue = $this->sanitizePerPage($this->perPage);
+    if ($perPageValue != 4) $queryParams['perPage'] = $perPageValue;
 
         $path = '/katalog' . (count($queryParams) > 0 ? '?' . http_build_query($queryParams) : '');
 
-        $products = $query->paginate($this->perPage)->withPath($path);
+    $products = $query->paginate($perPageValue)->withPath($path);
         $categories = Category::orderBy('name')->get();
 
         return view('livewire.product-catalog', compact('products', 'categories'));
